@@ -1,4 +1,23 @@
+import React, { useEffect, useState } from 'react'
+import Login from './pages/login/index.jsx'
+import { isAuthenticated, logout as doLogout } from './services/auth.js'
+
 function App() {
+  // TODO: Migrar este controle simples de auth para react-router com ProtectedRoute e/ou AuthContext.
+  const [auth, setAuth] = useState(false)
+
+  useEffect(() => {
+    setAuth(isAuthenticated())
+  }, [])
+
+  if (!auth) {
+    return <Login onSuccess={() => setAuth(true)} />
+  }
+
+  const handleLogout = () => {
+    doLogout()
+    setAuth(false)
+  }
   return (
     <div className="app">
       {/* Sidebar esquerda */}
@@ -28,7 +47,7 @@ function App() {
             <span className="nav-icon">⚙</span> Personalizar
           </a>
         </nav>
-        <a href="#" className="nav-item nav-logout">
+        <a href="#" className="nav-item nav-logout" onClick={handleLogout}>
           <span className="nav-icon">→</span> Sair
         </a>
       </aside>
@@ -49,7 +68,7 @@ function App() {
           <div className="header-actions">
             <button className="icon-btn">⚙</button>
             <div className="avatar">U</div>
-            <button className="btn-primary">Sair</button>
+            <button className="btn-primary" onClick={handleLogout}>Sair</button>
           </div>
         </header>
 
