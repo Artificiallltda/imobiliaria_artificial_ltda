@@ -1,7 +1,27 @@
-import Button from './components/Button'
-import Input from './components/Input'
+import { useMemo, useState } from 'react'
+import {
+  Button,
+  Card,
+  Input,
+  Modal,
+  Select,
+  StatusTag,
+  useToast,
+} from './components/ui/index.js'
 
 function App() {
+  const { toast } = useToast()
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
+
+  const selectOptions = useMemo(
+    () => [
+      { value: '1', label: 'Opção 1' },
+      { value: '2', label: 'Opção 2' },
+      { value: '3', label: 'Opção 3' },
+    ],
+    [],
+  )
+
   return (
     <div className="app">
       {/* Sidebar esquerda */}
@@ -66,12 +86,17 @@ function App() {
                 <Input placeholder="Preço mín." />
                 <Input placeholder="Preço máx." />
                 <Input placeholder="Km máx." />
-                <select><option>Tipo</option></select>
-                <select><option>Quartos</option></select>
-                <select><option>Banheiros</option></select>
-                <select><option>Cidade</option></select>
-                <select><option>País</option></select>
-                <Button className="btn-search">Buscar</Button>
+                <Select placeholder="Tipo" defaultValue="" options={selectOptions} />
+                <Select placeholder="Quartos" defaultValue="" options={selectOptions} />
+                <Select placeholder="Banheiros" defaultValue="" options={selectOptions} />
+                <Select placeholder="Cidade" defaultValue="" options={selectOptions} />
+                <Select placeholder="País" defaultValue="" options={selectOptions} />
+                <Button
+                  className="btn-search"
+                  onClick={() => toast({ type: 'success', message: 'Busca iniciada (mock).' })}
+                >
+                  Buscar
+                </Button>
               </div>
             </section>
 
@@ -79,14 +104,18 @@ function App() {
               <div className="listings-header">
                 <h2>Imóveis Disponíveis</h2>
                 <span className="results-count">0 encontrados</span>
-                <Button variant="outline" className="btn-filter">Filtrar por</Button>
+                <Button variant="outline" className="btn-filter" onClick={() => setIsFilterModalOpen(true)}>
+                  Filtrar por
+                </Button>
               </div>
               <div className="property-cards">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="property-card">
                     <div className="card-image">
                       <div className="img-placeholder" />
-                      <span className="badge">Ativo</span>
+                      <StatusTag status="active" className="badge">
+                        Ativo
+                      </StatusTag>
                     </div>
                     <div className="card-content">
                       <h3>Imóvel exemplo {i}</h3>
@@ -108,22 +137,49 @@ function App() {
           {/* Sidebar direita */}
           <aside className="right-sidebar">
             <h2>Meus Imóveis</h2>
-            <div className="featured-card">
+            <Card className="featured-card" variant="flat">
               <div className="img-placeholder large" />
-              <span className="badge">Ativo</span>
+              <StatusTag status="active" className="badge">
+                Ativo
+              </StatusTag>
               <p className="card-location">Cidade, Estado</p>
               <p className="card-price">R$ 0,00</p>
-            </div>
-            <div className="contact-card">
-              <span className="badge">Ativo</span>
+            </Card>
+            <Card className="contact-card" variant="flat">
+              <StatusTag status="active" className="badge">
+                Ativo
+              </StatusTag>
               <p>Local: Cidade, Estado</p>
               <p>Tel: (00) 00000-0000</p>
               <p>Email: email@exemplo.com</p>
               <Button>Personalizar</Button>
-            </div>
+            </Card>
           </aside>
         </div>
       </div>
+
+      <Modal
+        open={isFilterModalOpen}
+        title="Filtros"
+        onClose={() => setIsFilterModalOpen(false)}
+        actions={
+          <>
+            <Button variant="outline" onClick={() => setIsFilterModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => {
+                setIsFilterModalOpen(false)
+                toast({ type: 'warning', message: 'Filtros aplicados (mock).' })
+              }}
+            >
+              Aplicar
+            </Button>
+          </>
+        }
+      >
+        Ajuste seus filtros e clique em “Aplicar”.
+      </Modal>
     </div>
   )
 }
