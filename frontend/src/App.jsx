@@ -1,3 +1,6 @@
+import Button from './components/Button'
+import Input from './components/Input'
+
 function App() {
   return (
     <div className="app">
@@ -49,7 +52,7 @@ function App() {
           <div className="header-actions">
             <button className="icon-btn">⚙</button>
             <div className="avatar">U</div>
-            <button className="btn-primary">Sair</button>
+            <Button>Sair</Button>
           </div>
         </header>
 
@@ -59,16 +62,16 @@ function App() {
             <section className="search-section">
               <h2>Encontrar Imóvel</h2>
               <div className="search-grid">
-                <input type="text" placeholder="Localização" />
-                <input type="text" placeholder="Preço mín." />
-                <input type="text" placeholder="Preço máx." />
-                <input type="text" placeholder="Km máx." />
+                <Input placeholder="Localização" />
+                <Input placeholder="Preço mín." />
+                <Input placeholder="Preço máx." />
+                <Input placeholder="Km máx." />
                 <select><option>Tipo</option></select>
                 <select><option>Quartos</option></select>
                 <select><option>Banheiros</option></select>
                 <select><option>Cidade</option></select>
                 <select><option>País</option></select>
-                <button className="btn-primary btn-search">Buscar</button>
+                <Button className="btn-search">Buscar</Button>
               </div>
             </section>
 
@@ -76,7 +79,7 @@ function App() {
               <div className="listings-header">
                 <h2>Imóveis Disponíveis</h2>
                 <span className="results-count">0 encontrados</span>
-                <button className="btn-filter">Filtrar por</button>
+                <Button variant="outline" className="btn-filter">Filtrar por</Button>
               </div>
               <div className="property-cards">
                 {[1, 2, 3].map((i) => (
@@ -92,8 +95,8 @@ function App() {
                       <p className="card-details">— quartos • — banheiros • — m²</p>
                       <p className="card-desc">Descrição do imóvel.</p>
                       <div className="card-actions">
-                        <button className="btn-outline">Favoritar</button>
-                        <button className="btn-primary">Fazer Oferta</button>
+                        <Button variant="outline">Favoritar</Button>
+                        <Button>Fazer Oferta</Button>
                       </div>
                     </div>
                   </div>
@@ -116,7 +119,7 @@ function App() {
               <p>Local: Cidade, Estado</p>
               <p>Tel: (00) 00000-0000</p>
               <p>Email: email@exemplo.com</p>
-              <button className="btn-primary">Personalizar</button>
+              <Button>Personalizar</Button>
             </div>
           </aside>
         </div>
