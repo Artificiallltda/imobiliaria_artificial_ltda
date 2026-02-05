@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Button,
   Card,
@@ -8,10 +8,14 @@ import {
   StatusTag,
   useToast,
 } from './components/ui/index.js'
+import Login from './pages/login/index.jsx'
+import { isAuthenticated, logout as doLogout } from './services/auth.js'
 
 function App() {
   const { toast } = useToast()
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
+  // TODO: Migrar este controle simples de auth para react-router com ProtectedRoute e/ou AuthContext.
+  const [auth, setAuth] = useState(false)
 
   const selectOptions = useMemo(
     () => [
@@ -21,14 +25,6 @@ function App() {
     ],
     [],
   )
-
-import React, { useEffect, useState } from 'react'
-import Login from './pages/login/index.jsx'
-import { isAuthenticated, logout as doLogout } from './services/auth.js'
-
-function App() {
-  // TODO: Migrar este controle simples de auth para react-router com ProtectedRoute e/ou AuthContext.
-  const [auth, setAuth] = useState(false)
 
   useEffect(() => {
     setAuth(isAuthenticated())
@@ -92,8 +88,7 @@ function App() {
           <div className="header-actions">
             <button className="icon-btn">⚙</button>
             <div className="avatar">U</div>
-            <Button>Sair</Button>
-            <button className="btn-primary" onClick={handleLogout}>Sair</button>
+            <Button onClick={handleLogout}>Sair</Button>
           </div>
         </header>
 
