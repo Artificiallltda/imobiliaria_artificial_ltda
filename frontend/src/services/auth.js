@@ -1,19 +1,17 @@
-// TODO: Substituir mock por integração real com backend (login/logout/refresh) e armazenar token com segurança.
 const AUTH_KEY = 'ia_authenticated'
+const AUTH_TOKEN_KEY = 'ia_token'
+const AUTH_USER_KEY = 'ia_user'
+const API_BASE_URL = 'http://127.0.0.1:8000'
 
 export function isAuthenticated() {
   try {
-    return localStorage.getItem(AUTH_KEY) === 'true'
+    return localStorage.getItem(AUTH_KEY) === 'true' && !!localStorage.getItem(AUTH_TOKEN_KEY)
   } catch {
     return false
   }
 }
 
-export function login(email, password) {
-  // Mock simples: aceita apenas estas credenciais
-  const validEmail = 'demo@imob.com'
-  const validPass = '123456'
-
+export async function login(email, password) {
   if (!email || !password) {
     return { ok: false, message: 'Preencha e-mail e senha.' }
   }
@@ -21,15 +19,30 @@ export function login(email, password) {
   if (!emailOk) {
     return { ok: false, message: 'E-mail inválido.' }
   }
-  if (email === validEmail && password === validPass) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      return { ok: false, message: data.detail || 'Credenciais inválidas.' }
+    }
+    const data = await res.json()
     localStorage.setItem(AUTH_KEY, 'true')
+    localStorage.setItem(AUTH_TOKEN_KEY, data.access_token)
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user))
     return { ok: true }
+  } catch {
+    return { ok: false, message: 'Erro de conexão com o servidor.' }
   }
-  return { ok: false, message: 'Credenciais inválidas.' }
 }
 
 export function logout() {
   try {
     localStorage.removeItem(AUTH_KEY)
+    localStorage.removeItem(AUTH_TOKEN_KEY)
+    localStorage.removeItem(AUTH_USER_KEY)
   } catch {}
 }
