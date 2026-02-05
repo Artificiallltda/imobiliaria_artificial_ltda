@@ -14,7 +14,7 @@ export default function Login({ onSuccess }) {
   const [hoverEye, setHoverEye] = useState(false)
   const [emailError, setEmailError] = useState('')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setEmailError('')
@@ -29,7 +29,7 @@ export default function Login({ onSuccess }) {
       return
     }
     setLoading(true)
-    const res = login(email, password)
+    const res = await login(email, password)
     setLoading(false)
     if (res.ok) {
       onSuccess?.()
@@ -127,10 +127,6 @@ export default function Login({ onSuccess }) {
             <Button type="submit" disabled={loading}>
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>
-            {/* TODO: Externalizar as credenciais de demonstração para variáveis de ambiente ou arquivo de configuração. */}
-            <div style={{ fontSize: 12, color: '#6b7280', textAlign: 'center' }}>
-              Use demo@imob.com e 123456 para acessar
-            </div>
           </div>
         </form>
       </Card>
