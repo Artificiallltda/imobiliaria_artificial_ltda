@@ -1,3 +1,27 @@
+import { useMemo, useState } from 'react'
+import {
+  Button,
+  Card,
+  Input,
+  Modal,
+  Select,
+  StatusTag,
+  useToast,
+} from './components/ui/index.js'
+
+function App() {
+  const { toast } = useToast()
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
+
+  const selectOptions = useMemo(
+    () => [
+      { value: '1', label: 'Opção 1' },
+      { value: '2', label: 'Opção 2' },
+      { value: '3', label: 'Opção 3' },
+    ],
+    [],
+  )
+
 import React, { useEffect, useState } from 'react'
 import Login from './pages/login/index.jsx'
 import { isAuthenticated, logout as doLogout } from './services/auth.js'
@@ -68,6 +92,7 @@ function App() {
           <div className="header-actions">
             <button className="icon-btn">⚙</button>
             <div className="avatar">U</div>
+            <Button>Sair</Button>
             <button className="btn-primary" onClick={handleLogout}>Sair</button>
           </div>
         </header>
@@ -78,16 +103,21 @@ function App() {
             <section className="search-section">
               <h2>Encontrar Imóvel</h2>
               <div className="search-grid">
-                <input type="text" placeholder="Localização" />
-                <input type="text" placeholder="Preço mín." />
-                <input type="text" placeholder="Preço máx." />
-                <input type="text" placeholder="Km máx." />
-                <select><option>Tipo</option></select>
-                <select><option>Quartos</option></select>
-                <select><option>Banheiros</option></select>
-                <select><option>Cidade</option></select>
-                <select><option>País</option></select>
-                <button className="btn-primary btn-search">Buscar</button>
+                <Input placeholder="Localização" />
+                <Input placeholder="Preço mín." />
+                <Input placeholder="Preço máx." />
+                <Input placeholder="Km máx." />
+                <Select placeholder="Tipo" defaultValue="" options={selectOptions} />
+                <Select placeholder="Quartos" defaultValue="" options={selectOptions} />
+                <Select placeholder="Banheiros" defaultValue="" options={selectOptions} />
+                <Select placeholder="Cidade" defaultValue="" options={selectOptions} />
+                <Select placeholder="País" defaultValue="" options={selectOptions} />
+                <Button
+                  className="btn-search"
+                  onClick={() => toast({ type: 'success', message: 'Busca iniciada (mock).' })}
+                >
+                  Buscar
+                </Button>
               </div>
             </section>
 
@@ -95,14 +125,18 @@ function App() {
               <div className="listings-header">
                 <h2>Imóveis Disponíveis</h2>
                 <span className="results-count">0 encontrados</span>
-                <button className="btn-filter">Filtrar por</button>
+                <Button variant="outline" className="btn-filter" onClick={() => setIsFilterModalOpen(true)}>
+                  Filtrar por
+                </Button>
               </div>
               <div className="property-cards">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="property-card">
                     <div className="card-image">
                       <div className="img-placeholder" />
-                      <span className="badge">Ativo</span>
+                      <StatusTag status="active" className="badge">
+                        Ativo
+                      </StatusTag>
                     </div>
                     <div className="card-content">
                       <h3>Imóvel exemplo {i}</h3>
@@ -111,8 +145,8 @@ function App() {
                       <p className="card-details">— quartos • — banheiros • — m²</p>
                       <p className="card-desc">Descrição do imóvel.</p>
                       <div className="card-actions">
-                        <button className="btn-outline">Favoritar</button>
-                        <button className="btn-primary">Fazer Oferta</button>
+                        <Button variant="outline">Favoritar</Button>
+                        <Button>Fazer Oferta</Button>
                       </div>
                     </div>
                   </div>
@@ -124,22 +158,49 @@ function App() {
           {/* Sidebar direita */}
           <aside className="right-sidebar">
             <h2>Meus Imóveis</h2>
-            <div className="featured-card">
+            <Card className="featured-card" variant="flat">
               <div className="img-placeholder large" />
-              <span className="badge">Ativo</span>
+              <StatusTag status="active" className="badge">
+                Ativo
+              </StatusTag>
               <p className="card-location">Cidade, Estado</p>
               <p className="card-price">R$ 0,00</p>
-            </div>
-            <div className="contact-card">
-              <span className="badge">Ativo</span>
+            </Card>
+            <Card className="contact-card" variant="flat">
+              <StatusTag status="active" className="badge">
+                Ativo
+              </StatusTag>
               <p>Local: Cidade, Estado</p>
               <p>Tel: (00) 00000-0000</p>
               <p>Email: email@exemplo.com</p>
-              <button className="btn-primary">Personalizar</button>
-            </div>
+              <Button>Personalizar</Button>
+            </Card>
           </aside>
         </div>
       </div>
+
+      <Modal
+        open={isFilterModalOpen}
+        title="Filtros"
+        onClose={() => setIsFilterModalOpen(false)}
+        actions={
+          <>
+            <Button variant="outline" onClick={() => setIsFilterModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => {
+                setIsFilterModalOpen(false)
+                toast({ type: 'warning', message: 'Filtros aplicados (mock).' })
+              }}
+            >
+              Aplicar
+            </Button>
+          </>
+        }
+      >
+        Ajuste seus filtros e clique em “Aplicar”.
+      </Modal>
     </div>
   )
 }
