@@ -4,6 +4,8 @@ import { Button, Card, Input, Modal, Select, StatusTag, useToast } from './compo
 import Login from './pages/login/index.jsx'
 import Leads from './pages/Leads/index.jsx'
 import LeadDetail from './pages/LeadDetail/index.jsx'
+import Properties from './pages/Properties/index.jsx'
+import PropertyDetail from './pages/PropertyDetail/index.jsx'
 import { isAuthenticated, logout as doLogout } from './services/auth.js'
 
 function App() {
@@ -199,7 +201,6 @@ function DashboardPage() {
         <div className="listings-header">
           <h2>Imóveis Disponíveis</h2>
           <span className="results-count">0 encontrados</span>
-
           <Button
             variant="outline"
             className="btn-filter"
@@ -257,7 +258,7 @@ function DashboardPage() {
           </>
         }
       >
-        Ajuste seus filtros e clique em “Aplicar”.
+        Ajuste seus filtros e clique em "Aplicar".
       </Modal>
     </>
   )
