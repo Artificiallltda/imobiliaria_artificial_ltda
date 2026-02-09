@@ -4,6 +4,7 @@ import { Button, Card, Input, Modal, Select, StatusTag, useToast } from './compo
 import Login from './pages/login/index.jsx'
 import Leads from './pages/Leads/index.jsx'
 import LeadDetail from './pages/LeadDetail/index.jsx'
+import Messages from './pages/Messages.jsx'
 import { isAuthenticated, logout as doLogout } from './services/auth.js'
 
 function App() {
@@ -28,9 +29,9 @@ function App() {
           <Route path="/leads" element={<Leads />} />
           <Route path="/leads/:id" element={<LeadDetail />} />
 
-          {/* Rotas placeholders (mantém menu) */}
+          {/* Rotas */}
           <Route path="/favoritos" element={<SimplePage title="Lista de Favoritos" />} />
-          <Route path="/mensagens" element={<SimplePage title="Mensagens" />} />
+          <Route path="/mensagens" element={<Messages />} />
           <Route path="/imoveis" element={<SimplePage title="Lista de Imóveis" />} />
           <Route path="/meus-favoritos" element={<SimplePage title="Meus Favoritos" />} />
           <Route path="/personalizar" element={<SimplePage title="Personalizar" />} />
@@ -186,10 +187,7 @@ function DashboardPage() {
           <Select placeholder="Cidade" defaultValue="" options={selectOptions} />
           <Select placeholder="País" defaultValue="" options={selectOptions} />
 
-          <Button
-            className="btn-search"
-            onClick={() => toast({ type: 'success', message: 'Busca iniciada (mock).' })}
-          >
+          <Button className="btn-search" onClick={() => toast({ type: 'success', message: 'Busca iniciada (mock).' })}>
             Buscar
           </Button>
         </div>
@@ -200,11 +198,7 @@ function DashboardPage() {
           <h2>Imóveis Disponíveis</h2>
           <span className="results-count">0 encontrados</span>
 
-          <Button
-            variant="outline"
-            className="btn-filter"
-            onClick={() => setIsFilterModalOpen(true)}
-          >
+          <Button variant="outline" className="btn-filter" onClick={() => setIsFilterModalOpen(true)}>
             Filtrar por
           </Button>
         </div>
