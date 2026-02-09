@@ -4,6 +4,7 @@ import { Button, Card, Input, Modal, Select, StatusTag, useToast } from './compo
 import Login from './pages/login/index.jsx'
 import Leads from './pages/Leads/index.jsx'
 import LeadDetail from './pages/LeadDetail/index.jsx'
+import Favorites from './pages/Favorites.jsx'
 import { isAuthenticated, logout as doLogout } from './services/auth.js'
 
 function App() {
@@ -28,8 +29,8 @@ function App() {
           <Route path="/leads" element={<Leads />} />
           <Route path="/leads/:id" element={<LeadDetail />} />
 
-          {/* Rotas placeholders (mantém menu) */}
-          <Route path="/favoritos" element={<SimplePage title="Lista de Favoritos" />} />
+          {/* Rotas */}
+          <Route path="/favoritos" element={<Favorites />} />
           <Route path="/mensagens" element={<SimplePage title="Mensagens" />} />
           <Route path="/imoveis" element={<SimplePage title="Lista de Imóveis" />} />
           <Route path="/meus-favoritos" element={<SimplePage title="Meus Favoritos" />} />
