@@ -1,16 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, NavLink, Outlet } from 'react-router-dom'
-import {
-  Button,
-  Card,
-  Input,
-  Modal,
-  Select,
-  StatusTag,
-  useToast,
-} from './components/ui/index.js'
+import { Button, Card, Input, Modal, Select, StatusTag, useToast } from './components/ui/index.js'
 import Login from './pages/login/index.jsx'
-import Leads from './pages/Leads.jsx'
+import Leads from './pages/Leads/index.jsx'
+import LeadDetail from './pages/LeadDetail/index.jsx'
 import { isAuthenticated, logout as doLogout } from './services/auth.js'
 
 function App() {
@@ -33,6 +26,7 @@ function App() {
 
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/leads" element={<Leads />} />
+          <Route path="/leads/:id" element={<LeadDetail />} />
 
           {/* Rotas placeholders (mantém menu) */}
           <Route path="/favoritos" element={<SimplePage title="Lista de Favoritos" />} />
@@ -100,7 +94,9 @@ function AppLayout({ onLogout }) {
           </div>
 
           <div className="header-actions">
-            <button className="icon-btn">⚙</button>
+            <button className="icon-btn" type="button">
+              ⚙
+            </button>
             <div className="avatar">U</div>
             <Button onClick={handleLogout}>Sair</Button>
           </div>
@@ -145,9 +141,7 @@ function NavItem({ to, icon, label }) {
     <NavLink
       to={to}
       end
-      className={({ isActive }) =>
-        ['nav-item', isActive ? 'active' : ''].filter(Boolean).join(' ')
-      }
+      className={({ isActive }) => ['nav-item', isActive ? 'active' : ''].filter(Boolean).join(' ')}
     >
       <span className="nav-icon">{icon}</span> {label}
     </NavLink>

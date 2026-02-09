@@ -1,0 +1,97 @@
+.page {
+  display: grid;
+  gap: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 18px;
+  color: #111827;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+}
+
+.card {
+  padding: 14px;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.left {
+  min-width: 220px;
+  flex: 1;
+}
+
+.name {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.email {
+  font-size: 13px;
+  color: #64748b;
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 6px;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.detailLink {
+  text-decoration: none;
+  color: #2563eb;
+  font-weight: 700;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .left {
+    min-width: 0;
+  }
+
+  .right {
+    justify-content: flex-start;
+  }
+
+  .detailLink {
+    white-space: normal;
+  }
+}

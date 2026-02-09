@@ -1,0 +1,14 @@
+.container {
+  height: 100%;
+  overflow: auto;
+  padding: 10px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+}
+
+.empty {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+  padding: 12px;
+}
