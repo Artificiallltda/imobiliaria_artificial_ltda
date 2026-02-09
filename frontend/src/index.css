@@ -9,7 +9,7 @@
 body {
   font-family: var(--font-family-sans);
   min-height: 100vh;
-  background: var(--color-gray-100);
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
 }
 
 .app {
@@ -17,14 +17,16 @@ body {
   min-height: 100vh;
   background: var(--color-gray-0);
   max-width: 1400px;
-  margin: 0 auto;
-  box-shadow: var(--shadow-md);
+  margin: 24px auto;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
 }
 
 /* Sidebar esquerda */
 .sidebar {
   width: 220px;
-  background: var(--color-gray-50);
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
@@ -60,16 +62,18 @@ body {
   border-radius: 8px;
   font-size: 0.9rem;
   margin-bottom: 4px;
-  transition: background 0.2s;
+  transition: background 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 
 .nav-item:hover {
   background: var(--color-gray-200);
+  transform: translateX(2px);
 }
 
 .nav-item.active {
   background: var(--color-primary-600);
   color: var(--color-gray-0);
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
 }
 
 .nav-icon {
@@ -88,6 +92,7 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  background: var(--color-gray-50);
 }
 
 /* Header */
@@ -98,6 +103,7 @@ body {
   padding: 20px 32px;
   border-bottom: 1px solid var(--color-gray-200);
   background: var(--color-gray-0);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
 }
 
 .header-user strong {
@@ -115,6 +121,15 @@ body {
   gap: 24px;
   font-size: 0.9rem;
   color: var(--color-gray-700);
+}
+
+.header-stats span {
+  background: #f8fafc;
+  border: 1px solid var(--color-gray-200);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+  color: #1f2937;
 }
 
 .header-actions {
@@ -141,6 +156,7 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 0.9rem;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
 }
 
 .btn-primary {
@@ -181,7 +197,12 @@ body {
 }
 
 .search-section {
-  margin-bottom: 32px;
+  margin-bottom: 24px;
+  background: var(--color-gray-0);
+  border: 1px solid var(--color-gray-200);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
 }
 
 .search-section h2,
@@ -189,6 +210,14 @@ body {
   font-size: 1.25rem;
   margin-bottom: 16px;
   color: var(--color-gray-800);
+}
+
+.listings-section {
+  background: var(--color-gray-0);
+  border: 1px solid var(--color-gray-200);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
 }
 
 .search-grid {
@@ -203,6 +232,16 @@ body {
   border: 1px solid var(--color-gray-300);
   border-radius: 8px;
   font-size: 0.9rem;
+  background: #f8fafc;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.search-grid input:focus,
+.search-grid select:focus {
+  outline: none;
+  border-color: var(--color-primary-400);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 .btn-search {
@@ -214,6 +253,7 @@ body {
   align-items: center;
   gap: 16px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .results-count {
@@ -244,6 +284,13 @@ body {
   border-radius: 12px;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.property-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
+  border-color: rgba(37, 99, 235, 0.2);
 }
 
 .card-image {
@@ -272,6 +319,7 @@ body {
   font-size: 0.75rem;
   padding: 4px 8px;
   border-radius: 6px;
+  box-shadow: 0 6px 14px rgba(34, 197, 94, 0.35);
 }
 
 .card-content {
@@ -318,7 +366,7 @@ body {
   min-width: 280px;
   padding: 24px;
   border-left: 1px solid var(--color-gray-200);
-  background: var(--color-gray-50);
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -336,6 +384,7 @@ body {
   overflow: hidden;
   border: 1px solid var(--color-gray-200);
   padding: 12px;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
 }
 
 .featured-card .img-placeholder {
@@ -355,6 +404,7 @@ body {
   border-radius: 12px;
   border: 1px solid var(--color-gray-200);
   padding: 16px;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
 }
 
 .contact-card p {
