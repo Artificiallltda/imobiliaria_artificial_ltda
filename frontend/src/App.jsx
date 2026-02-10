@@ -11,6 +11,7 @@ import Messages from './pages/Messages.jsx'
 import Properties from './pages/Properties/index.jsx'
 import PropertyDetail from './pages/PropertyDetail/index.jsx'
 import { isAuthenticated, logout as doLogout } from './services/auth.js'
+import { useTheme } from './context/ThemeContext.jsx'
 
 function App() {
   const [auth, setAuth] = useState(false)
@@ -31,15 +32,20 @@ function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
           <Route path="/dashboard" element={<DashboardPage />} />
+
+          {/* Leads (NÃO REMOVER) */}
           <Route path="/leads" element={<Leads />} />
           <Route path="/leads/:id" element={<LeadDetail />} />
 
-          {/* Rotas */}
+          {/* Favoritos / Mensagens */}
           <Route path="/favoritos" element={<Favorites />} />
-          <Route path="/mensagens" element={<SimplePage title="Mensagens" />} />
-          <Route path="/favoritos" element={<SimplePage title="Lista de Favoritos" />} />
           <Route path="/mensagens" element={<Messages />} />
-          <Route path="/imoveis" element={<SimplePage title="Lista de Imóveis" />} />
+
+          {/* Imóveis */}
+          <Route path="/imoveis" element={<Properties />} />
+          <Route path="/imoveis/:id" element={<PropertyDetail />} />
+
+          {/* Outros */}
           <Route path="/meus-favoritos" element={<SimplePage title="Meus Favoritos" />} />
           <Route path="/personalizar" element={<SimplePage title="Personalizar" />} />
 
@@ -55,6 +61,8 @@ export default App
 function AppLayout({ onLogout }) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
     const onResize = () => {
@@ -116,6 +124,17 @@ function AppLayout({ onLogout }) {
 
             <button className="icon-btn" type="button" aria-label="Configurações">
               <SettingsIcon />
+            </button>
+
+            {/* Toggle tema */}
+            <button
+              className="icon-btn"
+              type="button"
+              onClick={toggleTheme}
+              aria-label="Alternar tema"
+              title={theme === 'dark' ? 'Mudar para claro' : 'Mudar para escuro'}
+            >
+              {theme === 'dark' ? '☀️' : '🌙'}
             </button>
 
             <div className="avatar">U</div>
@@ -195,7 +214,10 @@ function DashboardPage() {
           <Select placeholder="Cidade" defaultValue="" options={selectOptions} />
           <Select placeholder="País" defaultValue="" options={selectOptions} />
 
-          <Button className="btn-search" onClick={() => toast({ type: 'success', message: 'Busca iniciada (mock).' })}>
+          <Button
+            className="btn-search"
+            onClick={() => toast({ type: 'success', message: 'Busca iniciada (mock).' })}
+          >
             Buscar
           </Button>
         </div>
@@ -205,11 +227,7 @@ function DashboardPage() {
         <div className="listings-header">
           <h2>Imóveis Disponíveis</h2>
           <span className="results-count">0 encontrados</span>
-          <Button
-            variant="outline"
-            className="btn-filter"
-            onClick={() => setIsFilterModalOpen(true)}
-          >
+          <Button variant="outline" className="btn-filter" onClick={() => setIsFilterModalOpen(true)}>
             Filtrar por
           </Button>
         </div>
@@ -262,7 +280,7 @@ function DashboardPage() {
           </>
         }
       >
-        Ajuste seus filtros e clique em "Aplicar".
+        Ajuste seus filtros e clique em &quot;Aplicar&quot;.
       </Modal>
     </>
   )
