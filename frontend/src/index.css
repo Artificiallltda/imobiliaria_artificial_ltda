@@ -913,7 +913,7 @@ body {
 }
 /* =========================
    MESSAGES (LISTA + CHAT)
-
+========================= */
 .messages-page {
   display: grid;
   grid-template-columns: 320px 1fr;
