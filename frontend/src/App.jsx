@@ -6,6 +6,7 @@ import { MenuIcon, SettingsIcon } from './components/Icons/index.jsx'
 import Login from './pages/login/index.jsx'
 import Leads from './pages/Leads/index.jsx'
 import LeadDetail from './pages/LeadDetail/index.jsx'
+import Favorites from './pages/Favorites.jsx'
 import Messages from './pages/Messages.jsx'
 import Properties from './pages/Properties/index.jsx'
 import PropertyDetail from './pages/PropertyDetail/index.jsx'
@@ -34,6 +35,8 @@ function App() {
           <Route path="/leads/:id" element={<LeadDetail />} />
 
           {/* Rotas */}
+          <Route path="/favoritos" element={<Favorites />} />
+          <Route path="/mensagens" element={<SimplePage title="Mensagens" />} />
           <Route path="/favoritos" element={<SimplePage title="Lista de Favoritos" />} />
           <Route path="/mensagens" element={<Messages />} />
           <Route path="/imoveis" element={<SimplePage title="Lista de Imóveis" />} />
