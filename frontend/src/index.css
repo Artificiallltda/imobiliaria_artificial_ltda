@@ -912,8 +912,270 @@ body {
   color: #991b1b;
 }
 /* =========================
+   MESSAGES (LISTA + CHAT)
+
+.messages-page {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 14px;
+  height: calc(100vh - 120px); /* ajusta com seu header */
+  min-height: 520px;
+}
+
+.messages-list,
+.messages-chat {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 1px 10px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.messages-list-header {
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid #eef2f6;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.messages-list-body {
+  overflow: auto;
+  height: 100%;
+}
+
+.conv-item {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 12px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+}
+
+.conv-item:hover {
+  background: #f8fafc;
+}
+
+.conv-item--active {
+  background: #eff6ff;
+}
+
+.conv-item--archived {
+  opacity: 0.7;
+}
+
+.conv-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.conv-name {
+  font-weight: 900;
+  color: #0f172a;
+  font-size: 0.95rem;
+}
+
+.conv-sub {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.conv-bottom {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.conv-preview {
+  color: #334155;
+  font-size: 0.86rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conv-unread {
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #2563eb;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.conv-status,
+.chat-status {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.status-ativa {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #bbf7d0;
+}
+
+.status-arquivada {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #e2e8f0;
+}
+
+.status-não-lida,
+.status-nao-lida {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #dbeafe;
+}
+
+/* CHAT */
+.chat-shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid #eef2f6;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.chat-title {
+  font-weight: 950;
+  color: #0f172a;
+  font-size: 1rem;
+}
+
+.chat-subtitle {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chat-body {
+  flex: 1;
+  overflow: auto;
+  padding: 14px;
+  background: #f8fafc;
+}
+
+.bubble-row {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.bubble-row--me {
+  justify-content: flex-end;
+}
+
+.bubble-row--them {
+  justify-content: flex-start;
+}
+
+.bubble {
+  max-width: min(540px, 88%);
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.06);
+}
+
+.bubble-row--me .bubble {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+.bubble-text {
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.bubble-time {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.chat-footer {
+  padding: 12px;
+  border-top: 1px solid #eef2f6;
+  display: grid;
+  grid-template-columns: 1fr 110px;
+  gap: 10px;
+  background: #fff;
+}
+
+.chat-footnote {
+  padding: 10px 12px 14px;
+  background: #fff;
+}
+
+/* MOBILE */
+.messages-mobile-back,
+.messages-mobile-close {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .messages-page {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 0;
+  }
+
+  .messages-list,
+  .messages-chat {
+    height: calc(100vh - 170px);
+  }
+
+  .messages-mobile-back,
+  .messages-mobile-close {
+    display: inline-flex;
+  }
+
+  .messages-list {
+    display: none;
+  }
+
+  .messages-list--show {
+    display: block;
+  }
+
+  .messages-chat--hide {
+    display: none;
    SIDEBAR (COMPONENTE)
-========================= */
 
 .sidebar-top {
   display: flex;
@@ -998,7 +1260,6 @@ body {
 /* =========================
    MOBILE FIX (layout celular)
    Cole no FINAL do index.css
-========================= */
 
 @media (max-width: 768px) {
   /* Evita scroll horizontal e deixa o app ocupar toda a tela */
@@ -1113,7 +1374,6 @@ body {
 }
 /* =========================
    MOBILE FIX 2 (menu não vazar)
-========================= */
 @media (max-width: 768px) {
   /* garante que nada estoure pro lado */
   .app,

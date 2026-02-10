@@ -32,9 +32,9 @@ function App() {
           <Route path="/leads" element={<Leads />} />
           <Route path="/leads/:id" element={<LeadDetail />} />
 
-          {/* Rotas placeholders (mantém menu) */}
+          {/* Rotas */}
           <Route path="/favoritos" element={<SimplePage title="Lista de Favoritos" />} />
-          <Route path="/mensagens" element={<SimplePage title="Mensagens" />} />
+          <Route path="/mensagens" element={<Messages />} />
           <Route path="/imoveis" element={<SimplePage title="Lista de Imóveis" />} />
           <Route path="/meus-favoritos" element={<SimplePage title="Meus Favoritos" />} />
           <Route path="/personalizar" element={<SimplePage title="Personalizar" />} />
@@ -191,10 +191,7 @@ function DashboardPage() {
           <Select placeholder="Cidade" defaultValue="" options={selectOptions} />
           <Select placeholder="País" defaultValue="" options={selectOptions} />
 
-          <Button
-            className="btn-search"
-            onClick={() => toast({ type: 'success', message: 'Busca iniciada (mock).' })}
-          >
+          <Button className="btn-search" onClick={() => toast({ type: 'success', message: 'Busca iniciada (mock).' })}>
             Buscar
           </Button>
         </div>
