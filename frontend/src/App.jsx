@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, NavLink, Outlet } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { Button, Card, Input, Modal, Select, StatusTag, useToast } from './components/ui/index.js'
+import Sidebar from './components/Sidebar.jsx'
+import { MenuIcon, SettingsIcon } from './components/Icons/index.jsx'
 import Login from './pages/login/index.jsx'
 import Leads from './pages/Leads/index.jsx'
 import LeadDetail from './pages/LeadDetail/index.jsx'
-import Messages from './pages/Messages.jsx'
+import Properties from './pages/Properties/index.jsx'
+import PropertyDetail from './pages/PropertyDetail/index.jsx'
 import { isAuthenticated, logout as doLogout } from './services/auth.js'
 
 function App() {
@@ -46,6 +49,17 @@ function App() {
 export default App
 
 function AppLayout({ onLogout }) {
+  const [collapsed, setCollapsed] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth > 768) setMobileOpen(false)
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
   const handleLogout = () => {
     doLogout()
     onLogout()
@@ -53,36 +67,27 @@ function AppLayout({ onLogout }) {
 
   return (
     <div className="app">
-      {/* Sidebar esquerda */}
-      <aside className="sidebar">
-        <div className="logo">Imobiliária</div>
-
-        <nav className="nav-section">
-          <span className="nav-label">MENU PRINCIPAL</span>
-
-          <NavItem to="/dashboard" icon="▢" label="Dashboard" />
-          <NavItem to="/leads" icon="👥" label="Leads" />
-          <NavItem to="/favoritos" icon="★" label="Lista de Favoritos" />
-          <NavItem to="/mensagens" icon="✉" label="Mensagens" />
-        </nav>
-
-        <nav className="nav-section">
-          <span className="nav-label">MEUS IMÓVEIS</span>
-
-          <NavItem to="/imoveis" icon="⌂" label="Lista de Imóveis" />
-          <NavItem to="/meus-favoritos" icon="☆" label="Meus Favoritos" />
-          <NavItem to="/personalizar" icon="⚙" label="Personalizar" />
-        </nav>
-
-        <button className="nav-item nav-logout" type="button" onClick={handleLogout}>
-          <span className="nav-icon">→</span> Sair
-        </button>
-      </aside>
+      {/* Sidebar (componentizada) */}
+      <Sidebar
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+        mobileOpen={mobileOpen}
+        setMobileOpen={setMobileOpen}
+        onLogout={handleLogout}
+      />
 
       {/* Área principal */}
       <div className="main-wrapper">
         {/* Header */}
         <header className="header">
+          <div className="header-brand">
+            <div className="brand-mark">IA</div>
+            <div>
+              <strong className="brand-title">Imobiliária Artificial</strong>
+              <span className="brand-tagline">Inteligência que valoriza cada imóvel</span>
+            </div>
+          </div>
+
           <div className="header-user">
             <strong>Usuário</strong>
             <span className="header-greeting">Bom dia</span>
@@ -95,9 +100,20 @@ function AppLayout({ onLogout }) {
           </div>
 
           <div className="header-actions">
-            <button className="icon-btn" type="button">
-              ⚙
+            {/* Botão mobile para abrir sidebar */}
+            <button
+              className="icon-btn mobile-menu-btn"
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              aria-label="Abrir menu"
+            >
+              <MenuIcon />
             </button>
+
+            <button className="icon-btn" type="button" aria-label="Configurações">
+              <SettingsIcon />
+            </button>
+
             <div className="avatar">U</div>
             <Button onClick={handleLogout}>Sair</Button>
           </div>
@@ -134,18 +150,6 @@ function AppLayout({ onLogout }) {
         </div>
       </div>
     </div>
-  )
-}
-
-function NavItem({ to, icon, label }) {
-  return (
-    <NavLink
-      to={to}
-      end
-      className={({ isActive }) => ['nav-item', isActive ? 'active' : ''].filter(Boolean).join(' ')}
-    >
-      <span className="nav-icon">{icon}</span> {label}
-    </NavLink>
   )
 }
 
@@ -197,8 +201,11 @@ function DashboardPage() {
         <div className="listings-header">
           <h2>Imóveis Disponíveis</h2>
           <span className="results-count">0 encontrados</span>
-
-          <Button variant="outline" className="btn-filter" onClick={() => setIsFilterModalOpen(true)}>
+          <Button
+            variant="outline"
+            className="btn-filter"
+            onClick={() => setIsFilterModalOpen(true)}
+          >
             Filtrar por
           </Button>
         </div>
@@ -251,7 +258,7 @@ function DashboardPage() {
           </>
         }
       >
-        Ajuste seus filtros e clique em “Aplicar”.
+        Ajuste seus filtros e clique em "Aplicar".
       </Modal>
     </>
   )

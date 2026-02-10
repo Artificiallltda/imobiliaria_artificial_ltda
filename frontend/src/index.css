@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import './styles/tokens.css';
 
 * {
@@ -9,7 +10,10 @@
 body {
   font-family: var(--font-family-sans);
   min-height: 100vh;
-  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  background: linear-gradient(180deg, #f4f6fb 0%, #eef2f7 100%);
+  color: var(--color-gray-800);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 .app {
@@ -18,15 +22,16 @@ body {
   background: var(--color-gray-0);
   max-width: 1400px;
   margin: 24px auto;
-  border-radius: 18px;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+  border: 1px solid var(--color-gray-200);
+  box-shadow: var(--shadow-lg);
 }
 
 /* Sidebar esquerda */
 .sidebar {
   width: 220px;
-  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  background: var(--gradient-surface);
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
@@ -38,6 +43,7 @@ body {
   font-weight: 700;
   margin-bottom: 32px;
   color: var(--color-gray-800);
+  letter-spacing: -0.01em;
 }
 
 .nav-section {
@@ -55,30 +61,44 @@ body {
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   padding: 10px 12px;
   color: var(--color-gray-700);
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 0.9rem;
+  font-weight: 500;
   margin-bottom: 4px;
-  transition: background 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
+  border: 1px solid transparent;
+  transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 
 .nav-item:hover {
-  background: var(--color-gray-200);
-  transform: translateX(2px);
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: var(--color-gray-800);
 }
 
 .nav-item.active {
-  background: var(--color-primary-600);
+  background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-500));
   color: var(--color-gray-0);
-  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.25);
 }
 
 .nav-icon {
-  font-size: 1rem;
-  opacity: 0.9;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+}
+
+.nav-icon svg,
+.icon-btn svg {
+  width: 18px;
+  height: 18px;
 }
 
 .nav-logout {
@@ -100,10 +120,49 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 32px;
+  gap: 24px;
+  padding: 18px 32px;
   border-bottom: 1px solid var(--color-gray-200);
-  background: var(--color-gray-0);
+  background: #ffffff;
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(59, 91, 219, 0.08), transparent 42%),
+    radial-gradient(circle at 80% 0%, rgba(20, 184, 166, 0.1), transparent 45%);
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.brand-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--gradient-primary);
+  color: var(--color-gray-0);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  box-shadow: 0 10px 22px rgba(47, 73, 184, 0.25);
+}
+
+.brand-title {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-gray-900);
+  letter-spacing: -0.01em;
+}
+
+.brand-tagline {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--color-gray-600);
 }
 
 .header-user strong {
@@ -125,11 +184,12 @@ body {
 
 .header-stats span {
   background: #f8fafc;
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid #e2e8f0;
   padding: 6px 12px;
   border-radius: 999px;
   font-weight: 600;
   color: #1f2937;
+  box-shadow: var(--shadow-sm);
 }
 
 .header-actions {
@@ -144,6 +204,14 @@ body {
   font-size: 1.2rem;
   cursor: pointer;
   padding: 4px;
+  border-radius: 8px;
+  color: var(--color-gray-600);
+  transition: background 0.2s, color 0.2s;
+}
+
+.icon-btn:hover {
+  background: var(--color-gray-100);
+  color: var(--color-gray-800);
 }
 
 .avatar {
@@ -160,25 +228,43 @@ body {
 }
 
 .btn-primary {
-  background: var(--color-primary-600);
+  background: var(--gradient-primary);
   color: var(--color-gray-0);
   border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
   font-size: 0.9rem;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
+  box-shadow: 0 10px 22px rgba(47, 73, 184, 0.25);
+  transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.28);
+  filter: brightness(1.02);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
 }
 
 .btn-outline {
   background: var(--color-gray-0);
-  color: var(--color-primary-600);
-  border: 2px solid var(--color-primary-600);
-  padding: 8px 16px;
-  border-radius: 8px;
+  color: var(--color-primary-700);
+  border: 1px solid var(--color-primary-200);
+  padding: 10px 18px;
+  border-radius: 10px;
   font-size: 0.9rem;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.btn-outline:hover {
+  background: var(--color-primary-50);
+  border-color: var(--color-primary-300);
 }
 
 /* Content area */
@@ -199,10 +285,10 @@ body {
 .search-section {
   margin-bottom: 24px;
   background: var(--color-gray-0);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--shadow-md);
 }
 
 .search-section h2,
@@ -214,10 +300,10 @@ body {
 
 .listings-section {
   background: var(--color-gray-0);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--shadow-md);
 }
 
 .search-grid {
@@ -229,10 +315,10 @@ body {
 .search-grid input,
 .search-grid select {
   padding: 10px 12px;
-  border: 1px solid var(--color-gray-300);
-  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
   font-size: 0.9rem;
-  background: #f8fafc;
+  background: #ffffff;
   transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
 
@@ -240,8 +326,7 @@ body {
 .search-grid select:focus {
   outline: none;
   border-color: var(--color-primary-400);
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  box-shadow: var(--shadow-focus);
 }
 
 .btn-search {
@@ -264,11 +349,20 @@ body {
 .btn-filter {
   margin-left: auto;
   background: var(--color-gray-0);
-  border: 1px solid var(--color-gray-300);
-  padding: 8px 16px;
-  border-radius: var(--radius-md);
+  border: 1px solid #e2e8f0;
+  padding: 10px 16px;
+  border-radius: 10px;
   font-size: 0.9rem;
   cursor: pointer;
+  color: var(--color-gray-700);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s, box-shadow 0.2s, color 0.2s;
+}
+
+.btn-filter:hover {
+  border-color: #cbd5f5;
+  color: var(--color-gray-900);
+  box-shadow: var(--shadow-md);
 }
 
 .property-cards {
@@ -280,16 +374,16 @@ body {
 .property-card {
   display: flex;
   background: var(--color-gray-0);
-  border: 1px solid var(--color-gray-200);
-  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
-  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
 }
 
 .property-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
   border-color: rgba(37, 99, 235, 0.2);
 }
 
@@ -303,7 +397,7 @@ body {
   width: 100%;
   height: 100%;
   min-height: 140px;
-  background: linear-gradient(135deg, var(--color-gray-200) 0%, var(--color-gray-300) 100%);
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5f5 100%);
 }
 
 .img-placeholder.large {
@@ -318,8 +412,8 @@ body {
   color: var(--color-gray-0);
   font-size: 0.75rem;
   padding: 4px 8px;
-  border-radius: 6px;
-  box-shadow: 0 6px 14px rgba(34, 197, 94, 0.35);
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(34, 197, 94, 0.35);
 }
 
 .card-content {
@@ -366,7 +460,7 @@ body {
   min-width: 280px;
   padding: 24px;
   border-left: 1px solid var(--color-gray-200);
-  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  background: var(--gradient-surface);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -380,11 +474,11 @@ body {
 .featured-card {
   position: relative;
   background: var(--color-gray-0);
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid #e2e8f0;
   padding: 12px;
-  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--shadow-md);
 }
 
 .featured-card .img-placeholder {
@@ -401,10 +495,10 @@ body {
 
 .contact-card {
   background: var(--color-gray-0);
-  border-radius: 12px;
-  border: 1px solid var(--color-gray-200);
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
   padding: 16px;
-  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--shadow-md);
 }
 
 .contact-card p {
@@ -483,11 +577,12 @@ body {
   height: 34px;
   padding: 0 12px;
   border-radius: 999px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   color: #475569;
   font-size: 0.85rem;
   font-weight: 600;
+  box-shadow: var(--shadow-sm);
 }
 
 .dashboard-grid {
@@ -498,10 +593,10 @@ body {
 
 .stat-card {
   background: #ffffff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e2e8f0;
   border-radius: 14px;
   padding: 14px;
-  box-shadow: 0 1px 10px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--shadow-sm);
   min-width: 0;
 }
 
@@ -818,7 +913,6 @@ body {
 }
 /* =========================
    MESSAGES (LISTA + CHAT)
-========================= */
 
 .messages-page {
   display: grid;
@@ -1081,5 +1175,266 @@ body {
 
   .messages-chat--hide {
     display: none;
+   SIDEBAR (COMPONENTE)
+
+.sidebar-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-top .logo {
+  flex: 1;
+  margin-bottom: 0; /* evita desalinhamento */
+}
+
+.nav-text {
+  white-space: nowrap;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.45);
+  z-index: 40;
+}
+
+/* Desktop: recolhida */
+.sidebar.sidebar-collapsed {
+  width: 64px;
+  padding: 16px 8px;
+}
+
+.sidebar.sidebar-collapsed .nav-label,
+.sidebar.sidebar-collapsed .nav-text {
+  display: none;
+}
+
+.sidebar.sidebar-collapsed .nav-item {
+  justify-content: center;
+  padding: 12px;
+}
+
+.desktop-only {
+  display: inline-flex;
+}
+
+/* Mobile: drawer */
+.sidebar-close-btn {
+  display: none;
+}
+
+.mobile-menu-btn {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: inline-flex;
+  }
+
+  .desktop-only {
+    display: none;
+  }
+
+  .sidebar-close-btn {
+    display: inline-flex;
+  }
+
+  /* sidebar vira drawer */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 260px;
+    transform: translateX(-110%);
+    transition: transform 0.2s ease;
+    z-index: 50;
+  }
+
+  .sidebar.sidebar-mobile-open {
+    transform: translateX(0);
+  }
+}
+/* =========================
+   MOBILE FIX (layout celular)
+   Cole no FINAL do index.css
+
+@media (max-width: 768px) {
+  /* Evita scroll horizontal e deixa o app ocupar toda a tela */
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  .app {
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: rgba(255, 255, 255, 0.92);
+  }
+
+  /* Header mais compacto */
+  .header {
+    padding: 12px 14px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .header-brand {
+    width: 100%;
+  }
+
+  .brand-tagline {
+    display: none;
+  }
+
+  .header-stats {
+    display: none;
+  }
+
+  .header-user strong {
+    font-size: 0.95rem;
+  }
+
+  .header-greeting {
+    font-size: 0.8rem;
+  }
+
+  /* Main com menos padding */
+  .main-content {
+    padding: 14px;
+  }
+
+  /* Cards/painéis com menos padding e sem exagero */
+  .panel {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  /* ======= FILTRO / SEARCH GRID ======= */
+  .search-grid {
+    grid-template-columns: 1fr; /* 1 coluna no celular */
+    gap: 10px;
+  }
+
+  /* Se o seu botão tem className="btn-search" */
+  .btn-search {
+    width: 100%;
+    grid-column: auto; /* remove span */
+  }
+
+  /* Inputs/selects ocupando 100% */
+  .search-grid input,
+  .search-grid select,
+  .search-grid .input,
+  .search-grid .select {
+    width: 100%;
+  }
+
+  /* Botão "Filtrar por" e ações mais organizadas */
+  .listings-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .btn-filter {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  /* Property cards em coluna */
+  .property-card {
+    flex-direction: column;
+  }
+
+  .card-image {
+    width: 100%;
+    min-width: 100%;
+    height: 160px;
+  }
+
+  /* Botões dentro do card em coluna (fica mais usável) */
+  .card-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .card-actions button {
+    width: 100%;
+  }
+
+  /* Right sidebar já some, mas garante */
+  .right-sidebar {
+    display: none;
+  }
+}
+/* =========================
+   MOBILE FIX 2 (menu não vazar)
+@media (max-width: 768px) {
+  /* garante que nada estoure pro lado */
+  .app,
+  .main-wrapper,
+  .content-area,
+  .header,
+  .main-content {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Header: permite quebrar linha e não empurra pra fora */
+  .header {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    max-width: 100%;
+  }
+
+  /* evita que os "stats" virem bolhas fora da tela */
+  .header-stats {
+    display: none; /* você já escondia, reforça */
+  }
+
+  /* avatar e botão não explodem */
+  .avatar {
+    flex: 0 0 auto;
+  }
+
+  .header-actions button {
+    max-width: 100%;
+  }
+
+  /* ===== Sidebar como drawer (não aparece pela metade) ===== */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100dvh; /* melhor no mobile */
+    width: 280px;
+    max-width: 85vw;
+    transform: translateX(-110%);
+    transition: transform 0.2s ease;
+    z-index: 999;
+    overflow-y: auto; /* se tiver muitos itens */
+    padding-bottom: 24px;
+  }
+
+  /* quando abrir no mobile */
+  .sidebar.sidebar-mobile-open {
+    transform: translateX(0);
+  }
+
+  /* botão "Sair" não encosta fora */
+  .nav-logout {
+    margin-top: 16px;
+    width: 100%;
   }
 }
