@@ -1,5 +1,17 @@
 // src/components/Sidebar.jsx
 import { NavLink } from "react-router-dom";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CloseIcon,
+  DashboardIcon,
+  HomeIcon,
+  LeadsIcon,
+  LogoutIcon,
+  MessagesIcon,
+  SettingsIcon,
+  StarIcon,
+} from "./Icons";
 
 const MenuLink = ({ to, icon, children, onNavigate, collapsed }) => {
   return (
@@ -56,7 +68,7 @@ export default function Sidebar({
             aria-label={collapsed ? "Expandir sidebar" : "Recolher sidebar"}
             style={{ marginLeft: "auto" }}
           >
-            {collapsed ? "»" : "«"}
+            {collapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
           </button>
 
           <button
@@ -65,27 +77,32 @@ export default function Sidebar({
             onClick={() => setMobileOpen(false)}
             aria-label="Fechar menu"
           >
-            ✕
+            <CloseIcon />
           </button>
         </div>
 
         <nav className="nav-section">
           {!collapsed && <span className="nav-label">MENU PRINCIPAL</span>}
 
-          <MenuLink to="/dashboard" icon="▢" collapsed={collapsed} onNavigate={handleNavigate}>
+          <MenuLink
+            to="/dashboard"
+            icon={<DashboardIcon />}
+            collapsed={collapsed}
+            onNavigate={handleNavigate}
+          >
             Dashboard
           </MenuLink>
 
           {/* ✅ MANTÉM LEADS AQUI */}
-          <MenuLink to="/leads" icon="👥" collapsed={collapsed} onNavigate={handleNavigate}>
+          <MenuLink to="/leads" icon={<LeadsIcon />} collapsed={collapsed} onNavigate={handleNavigate}>
             Leads
           </MenuLink>
 
-          <MenuLink to="/favoritos" icon="★" collapsed={collapsed} onNavigate={handleNavigate}>
+          <MenuLink to="/favoritos" icon={<StarIcon />} collapsed={collapsed} onNavigate={handleNavigate}>
             Lista de Favoritos
           </MenuLink>
 
-          <MenuLink to="/mensagens" icon="✉" collapsed={collapsed} onNavigate={handleNavigate}>
+          <MenuLink to="/mensagens" icon={<MessagesIcon />} collapsed={collapsed} onNavigate={handleNavigate}>
             Mensagens
           </MenuLink>
         </nav>
@@ -93,21 +110,28 @@ export default function Sidebar({
         <nav className="nav-section">
           {!collapsed && <span className="nav-label">MEUS IMÓVEIS</span>}
 
-          <MenuLink to="/imoveis" icon="⌂" collapsed={collapsed} onNavigate={handleNavigate}>
+          <MenuLink to="/imoveis" icon={<HomeIcon />} collapsed={collapsed} onNavigate={handleNavigate}>
             Lista de Imóveis
           </MenuLink>
 
-          <MenuLink to="/meus-favoritos" icon="☆" collapsed={collapsed} onNavigate={handleNavigate}>
+          <MenuLink
+            to="/meus-favoritos"
+            icon={<StarIcon />}
+            collapsed={collapsed}
+            onNavigate={handleNavigate}
+          >
             Meus Favoritos
           </MenuLink>
 
-          <MenuLink to="/personalizar" icon="⚙" collapsed={collapsed} onNavigate={handleNavigate}>
+          <MenuLink to="/personalizar" icon={<SettingsIcon />} collapsed={collapsed} onNavigate={handleNavigate}>
             Personalizar
           </MenuLink>
         </nav>
 
         <button className="nav-item nav-logout" type="button" onClick={onLogout}>
-          <span className="nav-icon">→</span>
+          <span className="nav-icon">
+            <LogoutIcon />
+          </span>
           {!collapsed && "Sair"}
         </button>
       </aside>

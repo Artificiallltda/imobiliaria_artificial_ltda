@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { Button, Card, Input, Modal, Select, StatusTag, useToast } from './components/ui/index.js'
 import Sidebar from './components/Sidebar.jsx'
+import { MenuIcon, SettingsIcon } from './components/Icons/index.jsx'
 import Login from './pages/login/index.jsx'
 import Leads from './pages/Leads/index.jsx'
 import LeadDetail from './pages/LeadDetail/index.jsx'
@@ -79,6 +80,14 @@ function AppLayout({ onLogout }) {
       <div className="main-wrapper">
         {/* Header */}
         <header className="header">
+          <div className="header-brand">
+            <div className="brand-mark">IA</div>
+            <div>
+              <strong className="brand-title">Imobiliária Artificial</strong>
+              <span className="brand-tagline">Inteligência que valoriza cada imóvel</span>
+            </div>
+          </div>
+
           <div className="header-user">
             <strong>Usuário</strong>
             <span className="header-greeting">Bom dia</span>
@@ -98,11 +107,11 @@ function AppLayout({ onLogout }) {
               onClick={() => setMobileOpen(true)}
               aria-label="Abrir menu"
             >
-              ☰
+              <MenuIcon />
             </button>
 
             <button className="icon-btn" type="button" aria-label="Configurações">
-              ⚙
+              <SettingsIcon />
             </button>
 
             <div className="avatar">U</div>
