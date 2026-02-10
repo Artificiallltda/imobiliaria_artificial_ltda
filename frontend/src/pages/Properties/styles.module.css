@@ -1,0 +1,244 @@
+.propertiesPage {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header da página */
+.pageHeader {
+  margin-bottom: 32px;
+}
+
+.headerContent {
+  margin-bottom: 24px;
+}
+
+.pageTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-gray-900);
+  margin: 0 0 8px 0;
+}
+
+.pageSubtitle {
+  font-size: 1.125rem;
+  color: var(--color-gray-600);
+  margin: 0;
+}
+
+.stats {
+  display: flex;
+  gap: 32px;
+  padding: 20px;
+  background: var(--color-gray-50);
+  border-radius: 12px;
+  border: 1px solid var(--color-gray-200);
+}
+
+.statItem {
+  text-align: center;
+}
+
+.statNumber {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  color: var(--color-gray-600);
+  font-weight: 500;
+}
+
+/* Seção de filtros */
+.filtersSection {
+  margin-bottom: 32px;
+}
+
+.filtersHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.filtersTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.toggleFilters {
+  white-space: nowrap;
+}
+
+.quickSearch {
+  margin-bottom: 20px;
+}
+
+.searchInput {
+  max-width: 500px;
+}
+
+.advancedFilters {
+  border-top: 1px solid var(--color-gray-200);
+  padding-top: 20px;
+}
+
+.filtersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.filtersActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Seção de propriedades */
+.propertiesSection {
+  margin-top: 32px;
+}
+
+.propertiesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 24px;
+}
+
+/* Estado vazio */
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.emptyContent {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.emptyIcon {
+  display: block;
+  font-size: 4rem;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.emptyContent h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-gray-900);
+  margin: 0 0 8px 0;
+}
+
+.emptyContent p {
+  color: var(--color-gray-600);
+  margin: 0 0 24px 0;
+}
+
+/* Responsividade */
+@media (max-width: 1024px) {
+  .propertiesPage {
+    padding: 20px;
+  }
+  
+  .propertiesGrid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  
+  .stats {
+    gap: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .propertiesPage {
+    padding: 16px;
+  }
+  
+  .pageTitle {
+    font-size: 2rem;
+  }
+  
+  .pageSubtitle {
+    font-size: 1rem;
+  }
+  
+  .stats {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+  
+  .statItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+  }
+  
+  .statNumber {
+    font-size: 1.5rem;
+  }
+  
+  .filtersHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .filtersGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .filtersActions {
+    justify-content: stretch;
+  }
+  
+  .filtersActions button {
+    width: 100%;
+  }
+  
+  .propertiesGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  .propertiesPage {
+    padding: 12px;
+  }
+  
+  .pageTitle {
+    font-size: 1.75rem;
+  }
+  
+  .pageHeader {
+    margin-bottom: 24px;
+  }
+  
+  .filtersSection {
+    margin-bottom: 24px;
+  }
+  
+  .searchInput {
+    max-width: none;
+  }
+  
+  .emptyState {
+    padding: 40px 16px;
+  }
+  
+  .emptyIcon {
+    font-size: 3rem;
+  }
+}
