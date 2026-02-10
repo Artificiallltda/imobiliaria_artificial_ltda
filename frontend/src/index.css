@@ -816,3 +816,257 @@ body {
   background: #fee2e2;
   color: #991b1b;
 }
+/* =========================
+   SIDEBAR (COMPONENTE)
+========================= */
+
+.sidebar-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-top .logo {
+  flex: 1;
+  margin-bottom: 0; /* evita desalinhamento */
+}
+
+.nav-text {
+  white-space: nowrap;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.45);
+  z-index: 40;
+}
+
+/* Desktop: recolhida */
+.sidebar.sidebar-collapsed {
+  width: 64px;
+  padding: 16px 8px;
+}
+
+.sidebar.sidebar-collapsed .nav-label,
+.sidebar.sidebar-collapsed .nav-text {
+  display: none;
+}
+
+.sidebar.sidebar-collapsed .nav-item {
+  justify-content: center;
+  padding: 12px;
+}
+
+.desktop-only {
+  display: inline-flex;
+}
+
+/* Mobile: drawer */
+.sidebar-close-btn {
+  display: none;
+}
+
+.mobile-menu-btn {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: inline-flex;
+  }
+
+  .desktop-only {
+    display: none;
+  }
+
+  .sidebar-close-btn {
+    display: inline-flex;
+  }
+
+  /* sidebar vira drawer */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 260px;
+    transform: translateX(-110%);
+    transition: transform 0.2s ease;
+    z-index: 50;
+  }
+
+  .sidebar.sidebar-mobile-open {
+    transform: translateX(0);
+  }
+}
+/* =========================
+   MOBILE FIX (layout celular)
+   Cole no FINAL do index.css
+========================= */
+
+@media (max-width: 768px) {
+  /* Evita scroll horizontal e deixa o app ocupar toda a tela */
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  .app {
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: rgba(255, 255, 255, 0.92);
+  }
+
+  /* Header mais compacto */
+  .header {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .header-user strong {
+    font-size: 0.95rem;
+  }
+
+  .header-greeting {
+    font-size: 0.8rem;
+  }
+
+  /* Main com menos padding */
+  .main-content {
+    padding: 14px;
+  }
+
+  /* Cards/painéis com menos padding e sem exagero */
+  .panel {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  /* ======= FILTRO / SEARCH GRID ======= */
+  .search-grid {
+    grid-template-columns: 1fr; /* 1 coluna no celular */
+    gap: 10px;
+  }
+
+  /* Se o seu botão tem className="btn-search" */
+  .btn-search {
+    width: 100%;
+    grid-column: auto; /* remove span */
+  }
+
+  /* Inputs/selects ocupando 100% */
+  .search-grid input,
+  .search-grid select,
+  .search-grid .input,
+  .search-grid .select {
+    width: 100%;
+  }
+
+  /* Botão "Filtrar por" e ações mais organizadas */
+  .listings-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .btn-filter {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  /* Property cards em coluna */
+  .property-card {
+    flex-direction: column;
+  }
+
+  .card-image {
+    width: 100%;
+    min-width: 100%;
+    height: 160px;
+  }
+
+  /* Botões dentro do card em coluna (fica mais usável) */
+  .card-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .card-actions button {
+    width: 100%;
+  }
+
+  /* Right sidebar já some, mas garante */
+  .right-sidebar {
+    display: none;
+  }
+}
+/* =========================
+   MOBILE FIX 2 (menu não vazar)
+========================= */
+@media (max-width: 768px) {
+  /* garante que nada estoure pro lado */
+  .app,
+  .main-wrapper,
+  .content-area,
+  .header,
+  .main-content {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Header: permite quebrar linha e não empurra pra fora */
+  .header {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    max-width: 100%;
+  }
+
+  /* evita que os "stats" virem bolhas fora da tela */
+  .header-stats {
+    display: none; /* você já escondia, reforça */
+  }
+
+  /* avatar e botão não explodem */
+  .avatar {
+    flex: 0 0 auto;
+  }
+
+  .header-actions button {
+    max-width: 100%;
+  }
+
+  /* ===== Sidebar como drawer (não aparece pela metade) ===== */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100dvh; /* melhor no mobile */
+    width: 280px;
+    max-width: 85vw;
+    transform: translateX(-110%);
+    transition: transform 0.2s ease;
+    z-index: 999;
+    overflow-y: auto; /* se tiver muitos itens */
+    padding-bottom: 24px;
+  }
+
+  /* quando abrir no mobile */
+  .sidebar.sidebar-mobile-open {
+    transform: translateX(0);
+  }
+
+  /* botão "Sair" não encosta fora */
+  .nav-logout {
+    margin-top: 16px;
+    width: 100%;
+  }
+}
