@@ -10,6 +10,7 @@ import Favorites from './pages/Favorites.jsx'
 import Messages from './pages/Messages.jsx'
 import Properties from './pages/Properties/index.jsx'
 import PropertyDetail from './pages/PropertyDetail/index.jsx'
+import Settings from './pages/Settings/index.jsx'
 import { isAuthenticated, logout as doLogout } from './services/auth.js'
 import { useTheme } from './context/ThemeContext.jsx'
 
@@ -47,7 +48,7 @@ function App() {
 
           {/* Outros */}
           <Route path="/meus-favoritos" element={<SimplePage title="Meus Favoritos" />} />
-          <Route path="/personalizar" element={<SimplePage title="Personalizar" />} />
+          <Route path="/personalizar" element={<Settings />} />
 
           <Route path="*" element={<SimplePage title="404 - Não encontrado" />} />
         </Route>
