@@ -1,62 +1,63 @@
 // src/pages/Messages.jsx
-import { useMemo, useState } from "react";
-import { messagesMock } from "../mocks/messagesMock.jsx";
-import { Button, Input } from "../components/ui/index.js";
+import { useMemo, useState } from 'react'
+import { messagesMock } from '../mocks/messagesMock.jsx'
+import { Button, Input } from '../components/ui/index.js'
+import { useI18n } from '../i18n/index.jsx'
 
-// TODO - Implementar chat em tempo real
-// TODO - Sincronizar conversas em tempo real
-// TODO - Persistir histórico de mensagens
-// TODO - Enviar mensagens via WebSocket ou API
-
-const STATUS_ORDER = { "Não lida": 0, Ativa: 1, Arquivada: 2 };
+// IMPORTANTe:
+// - O mock mantém status em PT: "Não lida" | "Ativa" | "Arquivada"
+// - A UI traduz esses rótulos via t(), sem mudar o valor do mock
+const STATUS_ORDER = { 'Não lida': 0, Ativa: 1, Arquivada: 2 }
 
 export default function Messages() {
-  // TODO - Substituir dados mockados futuramente pela API
-  // Esses dados estão sendo usados apenas para desenvolvimento do frontend
-  const me = messagesMock.me;
-  const [conversations, setConversations] = useState(messagesMock.conversations);
+  const { t } = useI18n()
 
-  const [activeId, setActiveId] = useState(conversations[0]?.id || null);
-  const [mobileShowList, setMobileShowList] = useState(true);
-  const [text, setText] = useState("");
+  // mock
+  const me = messagesMock.me
+  const [conversations, setConversations] = useState(messagesMock.conversations)
+
+  const [activeId, setActiveId] = useState(conversations[0]?.id || null)
+  const [mobileShowList, setMobileShowList] = useState(true)
+  const [text, setText] = useState('')
 
   const active = useMemo(
     () => conversations.find((c) => c.id === activeId) || null,
-    [conversations, activeId]
-  );
+    [conversations, activeId],
+  )
 
   const sortedConversations = useMemo(() => {
     return [...conversations].sort((a, b) => {
-      const sa = STATUS_ORDER[a.status] ?? 9;
-      const sb = STATUS_ORDER[b.status] ?? 9;
-      if (sa !== sb) return sa - sb;
-      return new Date(b.updatedAt) - new Date(a.updatedAt);
-    });
-  }, [conversations]);
+      const sa = STATUS_ORDER[a.status] ?? 9
+      const sb = STATUS_ORDER[b.status] ?? 9
+      if (sa !== sb) return sa - sb
+      return new Date(b.updatedAt) - new Date(a.updatedAt)
+    })
+  }, [conversations])
 
   const handleOpenConversation = (id) => {
-    setActiveId(id);
+    setActiveId(id)
+
     // marca como lida (mock)
     setConversations((prev) =>
       prev.map((c) =>
-        c.id === id ? { ...c, status: c.status === "Não lida" ? "Ativa" : c.status, unreadCount: 0 } : c
-      )
-    );
+        c.id === id ? { ...c, status: c.status === 'Não lida' ? 'Ativa' : c.status, unreadCount: 0 } : c,
+      ),
+    )
 
     // mobile: ao abrir conversa, vai pro chat
-    setMobileShowList(false);
-  };
+    setMobileShowList(false)
+  }
 
   const handleSend = () => {
-    const msg = text.trim();
-    if (!msg || !active) return;
+    const msg = text.trim()
+    if (!msg || !active) return
 
     const newMessage = {
       id: `m-${Date.now()}`,
-      from: "agent",
+      from: 'agent',
       text: msg,
       at: new Date().toISOString(),
-    };
+    }
 
     setConversations((prev) =>
       prev.map((c) =>
@@ -66,21 +67,28 @@ export default function Messages() {
               updatedAt: newMessage.at,
               messages: [...c.messages, newMessage],
             }
-          : c
-      )
-    );
+          : c,
+      ),
+    )
 
-    setText("");
-  };
+    setText('')
+  }
+
+  const statusLabel = (statusPt) => {
+    if (statusPt === 'Não lida') return t('messages.status.unread')
+    if (statusPt === 'Ativa') return t('messages.status.active')
+    if (statusPt === 'Arquivada') return t('messages.status.archived')
+    return statusPt
+  }
 
   return (
     <div className="messages-page">
       {/* COLUNA ESQUERDA: LISTA */}
-      <aside className={`messages-list ${mobileShowList ? "messages-list--show" : ""}`}>
+      <aside className={`messages-list ${mobileShowList ? 'messages-list--show' : ''}`}>
         <div className="messages-list-header">
           <div>
-            <h2>Mensagens</h2>
-            <p className="muted">Conversas simuladas (mock).</p>
+            <h2>{t('messages.title')}</h2>
+            <p className="muted">{t('messages.subtitle')}</p>
           </div>
 
           <Button
@@ -89,7 +97,7 @@ export default function Messages() {
             type="button"
             onClick={() => setMobileShowList(false)}
           >
-            Ver chat
+            {t('messages.viewChat')}
           </Button>
         </div>
 
@@ -99,27 +107,27 @@ export default function Messages() {
               key={c.id}
               type="button"
               className={[
-                "conv-item",
-                c.id === activeId ? "conv-item--active" : "",
-                c.status === "Arquivada" ? "conv-item--archived" : "",
+                'conv-item',
+                c.id === activeId ? 'conv-item--active' : '',
+                c.status === 'Arquivada' ? 'conv-item--archived' : '',
               ]
                 .filter(Boolean)
-                .join(" ")}
+                .join(' ')}
               onClick={() => handleOpenConversation(c.id)}
             >
               <div className="conv-top">
                 <div className="conv-name">{c.leadName}</div>
-                <span className={`conv-status status-${slug(c.status)}`}>{c.status}</span>
+
+                {/* Classe continua baseada no valor PT (para não quebrar o CSS) */}
+                <span className={`conv-status status-${slug(c.status)}`}>{statusLabel(c.status)}</span>
               </div>
 
               <div className="conv-sub">{c.property}</div>
 
               <div className="conv-bottom">
-                <div className="conv-preview">{lastText(c.messages)}</div>
+                <div className="conv-preview">{lastText(c.messages, t)}</div>
 
-                {c.unreadCount > 0 && (
-                  <span className="conv-unread">{c.unreadCount}</span>
-                )}
+                {c.unreadCount > 0 && <span className="conv-unread">{c.unreadCount}</span>}
               </div>
             </button>
           ))}
@@ -127,11 +135,11 @@ export default function Messages() {
       </aside>
 
       {/* COLUNA DIREITA: CHAT */}
-      <section className={`messages-chat ${mobileShowList ? "messages-chat--hide" : ""}`}>
+      <section className={`messages-chat ${mobileShowList ? 'messages-chat--hide' : ''}`}>
         {!active ? (
           <div className="panel">
-            <h2>Nenhuma conversa</h2>
-            <p className="muted">Selecione uma conversa para visualizar.</p>
+            <h2>{t('messages.empty.title')}</h2>
+            <p className="muted">{t('messages.empty.subtitle')}</p>
           </div>
         ) : (
           <div className="chat-shell">
@@ -142,7 +150,7 @@ export default function Messages() {
               </div>
 
               <div className="chat-header-actions">
-                <span className={`chat-status status-${slug(active.status)}`}>{active.status}</span>
+                <span className={`chat-status status-${slug(active.status)}`}>{statusLabel(active.status)}</span>
 
                 <Button
                   variant="outline"
@@ -150,7 +158,7 @@ export default function Messages() {
                   type="button"
                   onClick={() => setMobileShowList(true)}
                 >
-                  Voltar
+                  {t('messages.chat.back')}
                 </Button>
               </div>
             </div>
@@ -162,10 +170,7 @@ export default function Messages() {
                 .map((m) => (
                   <div
                     key={m.id}
-                    className={[
-                      "bubble-row",
-                      m.from === "agent" ? "bubble-row--me" : "bubble-row--them",
-                    ].join(" ")}
+                    className={['bubble-row', m.from === 'agent' ? 'bubble-row--me' : 'bubble-row--them'].join(' ')}
                   >
                     <div className="bubble">
                       <div className="bubble-text">{m.text}</div>
@@ -177,44 +182,41 @@ export default function Messages() {
 
             <div className="chat-footer">
               <Input
-                placeholder="Digite sua mensagem…"
+                placeholder={t('messages.chat.inputPlaceholder')}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSend();
+                  if (e.key === 'Enter') handleSend()
                 }}
               />
-              <Button onClick={handleSend}>Enviar</Button>
+              <Button onClick={handleSend}>{t('messages.chat.send')}</Button>
             </div>
 
             <div className="chat-footnote">
-              <span className="muted">
-                {/* TODO - Implementar chat em tempo real */}
-                Envio é mockado e salva apenas no estado local.
-              </span>
+              <span className="muted">{t('messages.chat.footnote')}</span>
             </div>
           </div>
         )}
       </section>
     </div>
-  );
+  )
 }
 
-function lastText(messages = []) {
-  const last = messages[messages.length - 1];
-  return last?.text || "Sem mensagens";
+function lastText(messages = [], t) {
+  const last = messages[messages.length - 1]
+  return last?.text || t('messages.noMessages')
 }
 
 function slug(s) {
-  return String(s || "")
+  return String(s || '')
     .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w-]/g, "");
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]/g, '')
 }
 
 function formatTime(iso) {
-  const d = new Date(iso);
-  const hh = String(d.getHours()).padStart(2, "0");
-  const mm = String(d.getMinutes()).padStart(2, "0");
-  return `${hh}:${mm}`;
+  const d = new Date(iso)
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  return `${hh}:${mm}`
 }

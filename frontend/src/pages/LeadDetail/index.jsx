@@ -3,11 +3,12 @@ import { Link, useParams } from 'react-router-dom'
 import { Button, Card, Modal, Select, StatusTag, useToast } from '../../components/ui/index.js'
 import Conversation from '../../components/Leads/Conversation/index.jsx'
 import { getLeadDetailMockById } from '../../mocks/leadDetailMock.jsx'
+import { useI18n } from '../../i18n/index.jsx'
 import styles from './styles.module.css'
 
-function formatDate(iso) {
+function formatDate(iso, locale) {
   try {
-    return new Date(iso).toLocaleDateString('pt-BR')
+    return new Date(iso).toLocaleDateString(locale)
   } catch {
     return ''
   }
@@ -16,6 +17,7 @@ function formatDate(iso) {
 export default function LeadDetail() {
   const { id } = useParams()
   const { toast } = useToast()
+  const { t, locale } = useI18n()
 
   const detail = useMemo(() => getLeadDetailMockById(id), [id])
 
@@ -26,13 +28,13 @@ export default function LeadDetail() {
 
   const statusOptions = useMemo(
     () => [
-      { value: 'pending', label: 'Pendente' },
-      { value: 'active', label: 'Em atendimento' },
-      { value: 'inactive', label: 'Inativo' },
-      { value: 'converted', label: 'Convertido' },
-      { value: 'archived', label: 'Arquivado' },
+      { value: 'pending', label: t('leadDetail.statusOptions.pending') },
+      { value: 'active', label: t('leadDetail.statusOptions.active') },
+      { value: 'inactive', label: t('leadDetail.statusOptions.inactive') },
+      { value: 'converted', label: t('leadDetail.statusOptions.converted') },
+      { value: 'archived', label: t('leadDetail.statusOptions.archived') },
     ],
-    [],
+    [t],
   )
 
   const statusTag = useMemo(() => {
@@ -50,27 +52,27 @@ export default function LeadDetail() {
   const handleStatusChange = (next) => {
     setStatus(next)
     // TODO - Integrar ações com backend
-    toast({ type: 'success', message: 'Status atualizado (mock).' })
+    toast({ type: 'success', message: t('leadDetail.toast.statusUpdated') })
   }
 
   const handleSendMessage = () => {
     // TODO - Persistir histórico de mensagens
     // TODO - Integrar ações com backend
-    toast({ type: 'success', message: 'Mensagem enviada (simulado).' })
+    toast({ type: 'success', message: t('leadDetail.toast.messageSent') })
   }
 
   const handleConvert = () => {
     setIsConvertModalOpen(false)
     setStatus('converted')
     // TODO - Integrar ações com backend
-    toast({ type: 'success', message: 'Lead marcado como convertido (mock).' })
+    toast({ type: 'success', message: t('leadDetail.toast.leadConverted') })
   }
 
   const handleArchive = () => {
     setIsArchiveModalOpen(false)
     setStatus('archived')
     // TODO - Integrar ações com backend
-    toast({ type: 'success', message: 'Lead arquivado (mock).' })
+    toast({ type: 'success', message: t('leadDetail.toast.leadArchived') })
   }
 
   return (
@@ -79,14 +81,16 @@ export default function LeadDetail() {
         <div>
           <div className={styles.breadcrumb}>
             <Link to="/leads" className={styles.backLink}>
-              ← Voltar para Leads
+              {t('leadDetail.backToLeads')}
             </Link>
           </div>
+
           <div className={styles.titleRow}>
-            <h2 className={styles.title}>Detalhe do Lead</h2>
+            <h2 className={styles.title}>{t('leadDetail.title')}</h2>
             <StatusTag status={statusTag}>{statusLabel}</StatusTag>
           </div>
-          <div className={styles.subtitle}>ID: {detail.lead.id}</div>
+
+          <div className={styles.subtitle}>{t('leadDetail.id', { id: detail.lead.id })}</div>
         </div>
       </div>
 
@@ -94,26 +98,33 @@ export default function LeadDetail() {
         <div className={styles.section}>
           <div className={styles.cardHeader}>
             <div>
-              <div className={styles.cardTitle}>Resumo do lead</div>
-              <div className={styles.cardSub}>Criado em {formatDate(detail.lead.createdAt)}</div>
+              <div className={styles.cardTitle}>{t('leadDetail.summary.title')}</div>
+              <div className={styles.cardSub}>
+                {t('leadDetail.summary.createdAt', {
+                  date: formatDate(detail.lead.createdAt, locale),
+                })}
+              </div>
             </div>
           </div>
 
           <div className={styles.summaryGrid}>
             <div className={styles.field}>
-              <div className={styles.label}>Nome</div>
+              <div className={styles.label}>{t('leadDetail.summary.name')}</div>
               <div className={styles.value}>{detail.lead.name}</div>
             </div>
+
             <div className={styles.field}>
-              <div className={styles.label}>E-mail</div>
+              <div className={styles.label}>{t('leadDetail.summary.email')}</div>
               <div className={styles.value}>{detail.lead.email}</div>
             </div>
+
             <div className={styles.field}>
-              <div className={styles.label}>Telefone</div>
+              <div className={styles.label}>{t('leadDetail.summary.phone')}</div>
               <div className={styles.value}>{detail.lead.phone}</div>
             </div>
+
             <div className={styles.field}>
-              <div className={styles.label}>Status</div>
+              <div className={styles.label}>{t('leadDetail.summary.status')}</div>
               <div className={styles.value}>
                 <StatusTag status={statusTag}>{statusLabel}</StatusTag>
               </div>
@@ -126,14 +137,14 @@ export default function LeadDetail() {
         <div className={styles.section}>
           <div className={styles.cardHeader}>
             <div>
-              <div className={styles.cardTitle}>Ações rápidas</div>
-              <div className={styles.cardSub}>Simuladas para validação de fluxo</div>
+              <div className={styles.cardTitle}>{t('leadDetail.quickActions.title')}</div>
+              <div className={styles.cardSub}>{t('leadDetail.quickActions.subtitle')}</div>
             </div>
           </div>
 
           <div className={styles.actionsGrid}>
             <Select
-              label="Alterar status"
+              label={t('leadDetail.quickActions.changeStatus')}
               value={status}
               options={statusOptions}
               onChange={(e) => handleStatusChange(e.target.value)}
@@ -141,16 +152,19 @@ export default function LeadDetail() {
 
             <div className={styles.actionsButtons}>
               <Button variant="outline" onClick={() => setIsChatModalOpen(true)}>
-                Abrir conversa
+                {t('leadDetail.quickActions.openConversation')}
               </Button>
+
               <Button variant="outline" onClick={handleSendMessage}>
-                Enviar mensagem
+                {t('leadDetail.quickActions.sendMessage')}
               </Button>
+
               <Button variant="outline" onClick={() => setIsConvertModalOpen(true)}>
-                Marcar como convertido
+                {t('leadDetail.quickActions.markConverted')}
               </Button>
+
               <Button variant="outline" onClick={() => setIsArchiveModalOpen(true)}>
-                Arquivar lead
+                {t('leadDetail.quickActions.archiveLead')}
               </Button>
             </div>
           </div>
@@ -159,44 +173,44 @@ export default function LeadDetail() {
 
       <Modal
         open={isConvertModalOpen}
-        title="Marcar como convertido"
+        title={t('leadDetail.modals.convert.title')}
         onClose={() => setIsConvertModalOpen(false)}
         actions={
           <>
             <Button variant="outline" onClick={() => setIsConvertModalOpen(false)}>
-              Cancelar
+              {t('leadDetail.modals.convert.cancel')}
             </Button>
-            <Button onClick={handleConvert}>Confirmar</Button>
+            <Button onClick={handleConvert}>{t('leadDetail.modals.convert.confirm')}</Button>
           </>
         }
       >
-        Esta ação é simulada. Confirma marcar o lead como convertido?
+        {t('leadDetail.modals.convert.body')}
       </Modal>
 
       <Modal
         open={isArchiveModalOpen}
-        title="Arquivar lead"
+        title={t('leadDetail.modals.archive.title')}
         onClose={() => setIsArchiveModalOpen(false)}
         actions={
           <>
             <Button variant="outline" onClick={() => setIsArchiveModalOpen(false)}>
-              Cancelar
+              {t('leadDetail.modals.archive.cancel')}
             </Button>
-            <Button onClick={handleArchive}>Arquivar</Button>
+            <Button onClick={handleArchive}>{t('leadDetail.modals.archive.confirm')}</Button>
           </>
         }
       >
-        Esta ação é simulada. Confirma arquivar este lead?
+        {t('leadDetail.modals.archive.body')}
       </Modal>
 
       <Modal
         open={isChatModalOpen}
-        title="Histórico de conversa"
+        title={t('leadDetail.modals.chat.title')}
         onClose={() => setIsChatModalOpen(false)}
         actions={
           <>
             <Button variant="outline" onClick={() => setIsChatModalOpen(false)}>
-              Fechar
+              {t('leadDetail.modals.chat.close')}
             </Button>
           </>
         }
