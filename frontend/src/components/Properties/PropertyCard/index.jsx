@@ -21,6 +21,10 @@ const PropertyCard = ({ property }) => {
     navigate(`/properties/${id}`);
   };
 
+  const handleEdit = () => {
+    navigate(`/admin/properties/${id}/edit`);
+  };
+
   const handleScheduleVisit = () => {
     // TODO: Implementar modal de agendamento
   };
@@ -88,6 +92,13 @@ const PropertyCard = ({ property }) => {
             onClick={handleViewDetails}
           >
             Ver Detalhes
+          </Button>
+          <Button 
+            variant="outline" 
+            size="small"
+            onClick={handleEdit}
+          >
+            Editar
           </Button>
           <Button 
             size="small"

@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from src.database.db import SessionLocal
 from src.database.models import Users
 from src.routes.properties import router as properties_router
+from src.routes.properties_crud import router as properties_crud_router
 
 app = FastAPI(title="API Imobiliária", version="1.0.0")
 
@@ -25,6 +26,7 @@ app.add_middleware(
 
 # Incluir rotas de imóveis
 app.include_router(properties_router)
+app.include_router(properties_crud_router)
 
 
 class LoginPayload(BaseModel):

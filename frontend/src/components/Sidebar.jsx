@@ -114,6 +114,10 @@ export default function Sidebar({
             Lista de Imóveis
           </MenuLink>
 
+          <MenuLink to="/admin/properties" icon={<HomeIcon />} collapsed={collapsed} onNavigate={handleNavigate}>
+            Gerenciar Imóveis
+          </MenuLink>
+
           <MenuLink
             to="/meus-favoritos"
             icon={<StarIcon />}
