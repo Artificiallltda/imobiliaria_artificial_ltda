@@ -37,7 +37,6 @@ export const saveSettingsMock = async (settings) => {
   // Simula uma chamada de API
   return new Promise((resolve) => {
     setTimeout(() => {
-      console.log('Configurações salvas:', settings);
       resolve({ success: true });
     }, 1000);
   });

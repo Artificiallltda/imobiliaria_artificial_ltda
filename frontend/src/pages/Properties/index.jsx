@@ -1,30 +1,58 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Input, Select, Button, Card } from '../../components/ui/index.js';
 import PropertyCard from '../../components/Properties/PropertyCard/index.jsx';
-import { 
-  propertiesMock, 
-  propertyTypes, 
-  propertyStatuses, 
-  bedroomOptions 
-} from '../../mocks/propertiesMock.jsx';
+import { getProperties, validateFilters } from '../../services/propertiesService.js';
 import styles from './styles.module.css';
 
 const Properties = () => {
+  // Estados da aplicação
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [total, setTotal] = useState(0);
+  
   // Estado para filtros
   const [filters, setFilters] = useState({
-    search: '',
-    type: '',
-    status: '',
-    bedrooms: '',
+    city: '',
     minPrice: '',
     maxPrice: '',
-    location: ''
+    bedrooms: '',
+    status: ''
   });
 
   const [showFilters, setShowFilters] = useState(false);
 
   // TODO - Implementar paginação com backend
   // TODO - Implementar ordenação de resultados
+
+  // Função para buscar imóveis da API
+  const fetchProperties = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Valida e limpa os filtros
+      const validFilters = validateFilters(filters);
+      
+      // Busca dados da API
+      const response = await getProperties(validFilters);
+      
+      setProperties(response.data);
+      setTotal(response.total);
+      
+    } catch (err) {
+      setError(err.message);
+      setProperties([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Efeito para carregar dados quando os filtros mudam
+  useEffect(() => {
+    fetchProperties();
+  }, [filters]);
 
   // Função para atualizar filtros
   const handleFilterChange = (field, value) => {
@@ -37,58 +65,38 @@ const Properties = () => {
   // Função para limpar filtros
   const clearFilters = () => {
     setFilters({
-      search: '',
-      type: '',
-      status: '',
-      bedrooms: '',
+      city: '',
       minPrice: '',
       maxPrice: '',
-      location: ''
+      bedrooms: '',
+      status: ''
     });
   };
 
-  // TODO - Aplicar filtros via backend quando API estiver disponível
-  // Lógica de filtragem no frontend
-  const filteredProperties = useMemo(() => {
-    return propertiesMock.filter(property => {
-      // Filtro de busca (título e localização)
-      const searchMatch = !filters.search || 
-        property.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-        property.location.toLowerCase().includes(filters.search.toLowerCase());
-
-      // Filtro de tipo
-      const typeMatch = !filters.type || property.type === filters.type;
-
-      // Filtro de status
-      const statusMatch = !filters.status || property.status === filters.status;
-
-      // Filtro de quartos
-      const bedroomsMatch = !filters.bedrooms || 
-        (filters.bedrooms === '4' ? property.bedrooms >= 4 : property.bedrooms === parseInt(filters.bedrooms));
-
-      // Filtro de preço mínimo
-      const minPriceMatch = !filters.minPrice || property.price >= parseInt(filters.minPrice);
-
-      // Filtro de preço máximo
-      const maxPriceMatch = !filters.maxPrice || property.price <= parseInt(filters.maxPrice);
-
-      // Filtro de localização
-      const locationMatch = !filters.location || 
-        property.location.toLowerCase().includes(filters.location.toLowerCase());
-
-      return searchMatch && typeMatch && statusMatch && bedroomsMatch && minPriceMatch && maxPriceMatch && locationMatch;
-    });
-  }, [filters]);
-
   // Estatísticas dos resultados
   const stats = useMemo(() => {
-    const total = propertiesMock.length;
-    const filtered = filteredProperties.length;
-    const available = filteredProperties.filter(p => p.status === 'disponivel').length;
-    const featured = filteredProperties.filter(p => p.featured).length;
+    const available = properties.filter(p => p.status === 'AVAILABLE').length;
+    const sold = properties.filter(p => p.status === 'SOLD').length;
+    const reserved = properties.filter(p => p.status === 'RESERVED').length;
 
-    return { total, filtered, available, featured };
-  }, [filteredProperties]);
+    return { total, available, sold, reserved };
+  }, [properties, total]);
+
+  // Opções para os selects
+  const statusOptions = [
+    { value: '', label: 'Todos os status' },
+    { value: 'AVAILABLE', label: 'Disponível' },
+    { value: 'SOLD', label: 'Vendido' },
+    { value: 'RESERVED', label: 'Reservado' }
+  ];
+
+  const bedroomOptions = [
+    { value: '', label: 'Qualquer' },
+    { value: '1', label: '1 quarto' },
+    { value: '2', label: '2 quartos' },
+    { value: '3', label: '3 quartos' },
+    { value: '4', label: '4+ quartos' }
+  ];
 
   return (
     <div className={styles.propertiesPage}>
@@ -104,7 +112,7 @@ const Properties = () => {
         {/* Estatísticas */}
         <div className={styles.stats}>
           <div className={styles.statItem}>
-            <span className={styles.statNumber}>{stats.filtered}</span>
+            <span className={styles.statNumber}>{stats.total}</span>
             <span className={styles.statLabel}>Resultados</span>
           </div>
           <div className={styles.statItem}>
@@ -112,8 +120,8 @@ const Properties = () => {
             <span className={styles.statLabel}>Disponíveis</span>
           </div>
           <div className={styles.statItem}>
-            <span className={styles.statNumber}>{stats.featured}</span>
-            <span className={styles.statLabel}>Destaques</span>
+            <span className={styles.statNumber}>{stats.reserved}</span>
+            <span className={styles.statLabel}>Reservados</span>
           </div>
         </div>
       </div>
@@ -135,9 +143,9 @@ const Properties = () => {
         {/* Busca rápida (sempre visível) */}
         <div className={styles.quickSearch}>
           <Input
-            placeholder="Buscar por título ou localização..."
-            value={filters.search}
-            onChange={(e) => handleFilterChange('search', e.target.value)}
+            placeholder="Buscar por cidade..."
+            value={filters.city}
+            onChange={(e) => handleFilterChange('city', e.target.value)}
             className={styles.searchInput}
           />
         </div>
@@ -147,17 +155,10 @@ const Properties = () => {
           <div className={styles.advancedFilters}>
             <div className={styles.filtersGrid}>
               <Select
-                placeholder="Tipo de imóvel"
-                value={filters.type}
-                onChange={(e) => handleFilterChange('type', e.target.value)}
-                options={propertyTypes}
-              />
-              
-              <Select
                 placeholder="Status"
                 value={filters.status}
                 onChange={(e) => handleFilterChange('status', e.target.value)}
-                options={propertyStatuses}
+                options={statusOptions}
               />
               
               <Select
@@ -180,12 +181,6 @@ const Properties = () => {
                 value={filters.maxPrice}
                 onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
               />
-              
-              <Input
-                placeholder="Localização"
-                value={filters.location}
-                onChange={(e) => handleFilterChange('location', e.target.value)}
-              />
             </div>
             
             <div className={styles.filtersActions}>
@@ -199,7 +194,26 @@ const Properties = () => {
 
       {/* Lista de imóveis */}
       <div className={styles.propertiesSection}>
-        {filteredProperties.length === 0 ? (
+        {loading ? (
+          <Card className={styles.loadingState}>
+            <div className={styles.loadingContent}>
+              <span className={styles.loadingIcon}>⏳</span>
+              <h3>Carregando imóveis...</h3>
+              <p>Buscando as melhores oportunidades para você.</p>
+            </div>
+          </Card>
+        ) : error ? (
+          <Card className={styles.errorState}>
+            <div className={styles.errorContent}>
+              <span className={styles.errorIcon}>❌</span>
+              <h3>Erro ao carregar imóveis</h3>
+              <p>{error}</p>
+              <Button onClick={fetchProperties}>
+                Tentar Novamente
+              </Button>
+            </div>
+          </Card>
+        ) : properties.length === 0 ? (
           <Card className={styles.emptyState}>
             <div className={styles.emptyContent}>
               <span className={styles.emptyIcon}>🔍</span>
@@ -212,7 +226,7 @@ const Properties = () => {
           </Card>
         ) : (
           <div className={styles.propertiesGrid}>
-            {filteredProperties.map(property => (
+            {properties.map(property => (
               <PropertyCard
                 key={property.id}
                 property={property}
