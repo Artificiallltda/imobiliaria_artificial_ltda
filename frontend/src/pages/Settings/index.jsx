@@ -48,7 +48,6 @@ export default function Settings() {
       // TODO - Usar o sistema de toast do projeto
       alert('Configurações salvas com sucesso!');
     } catch (error) {
-      console.error('Erro ao salvar configurações:', error);
       alert('Erro ao salvar configurações. Tente novamente.');
     } finally {
       setIsSaving(false);
@@ -230,7 +229,6 @@ export default function Settings() {
                 style={{ display: 'none' }}
                 onChange={(e) => {
                   // TODO - Implementar lógica de upload
-                  console.log('Arquivo selecionado:', e.target.files[0]);
                 }}
               />
             </div>
