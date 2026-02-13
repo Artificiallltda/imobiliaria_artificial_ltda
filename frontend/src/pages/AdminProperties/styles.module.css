@@ -1,0 +1,458 @@
+.adminProperties {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  color: var(--text-color, #333);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.title {
+  margin: 0;
+  font-size: 28px;
+  color: var(--text-color, #333);
+}
+
+.subtitle {
+  margin: 5px 0 0 0;
+  color: var(--text-secondary-color, #666);
+  font-size: 16px;
+}
+
+.addButton {
+  background: var(--primary-color, #007bff);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.addButton:hover {
+  opacity: 0.9;
+}
+
+.filters {
+  margin-bottom: 30px;
+}
+
+.filtersContent {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filterInput {
+  flex: 1;
+  min-width: 200px;
+}
+
+.filterSelect {
+  min-width: 150px;
+}
+
+.propertiesList {
+  background: var(--card-bg, white);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.listHeader {
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color, #eee);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.total {
+  color: var(--text-secondary-color, #666);
+  font-weight: bold;
+}
+
+.loading, .error, .empty {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--text-secondary-color, #666);
+}
+
+.error {
+  color: var(--error-color, #dc3545);
+}
+
+.empty {
+  color: var(--text-secondary-color, #6c757d);
+}
+
+.tableContainer {
+  overflow-x: auto;
+}
+
+.propertiesGrid {
+  width: 100%;
+}
+
+/* Desktop View - Tabela */
+.desktopView {
+  display: block;
+}
+
+.mobileView {
+  display: none;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card-bg);
+}
+
+.table th,
+.table td {
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.table th {
+  background: var(--table-header-bg);
+  font-weight: 600;
+  color: var(--text-color);
+  position: sticky;
+  top: 0;
+}
+
+.titleCell {
+  max-width: 250px;
+}
+
+.titleCell strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text-color);
+}
+
+.titleCell small {
+  color: var(--text-secondary-color);
+  font-size: 12px;
+}
+
+.priceCell {
+  font-weight: 600;
+  color: var(--success-color);
+  white-space: nowrap;
+}
+
+.status {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status.AVAILABLE {
+  background: #34d399;
+  color: #ffffff;
+}
+
+.status.SOLD {
+  background: #f87171;
+  color: #ffffff;
+}
+
+.status.RESERVED {
+  background: #fbbf24;
+  color: #ffffff;
+}
+
+/* Dark mode overrides */
+:global(.dark) .status.AVAILABLE {
+  background: #34d399;
+  color: #ffffff;
+}
+
+:global(.dark) .status.SOLD {
+  background: #f87171;
+  color: #ffffff;
+}
+
+:global(.dark) .status.RESERVED {
+  background: #fbbf24;
+  color: #ffffff;
+}
+
+.actionsCell {
+  white-space: nowrap;
+}
+
+/* Dropdown Styles */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdownToggle {
+  background: transparent;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 4px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--text-secondary-color, #666);
+  transition: all 0.2s ease;
+}
+
+.dropdownToggle:hover {
+  background: var(--hover-bg, #f8f9fa);
+  border-color: var(--primary-color, #007bff);
+  color: var(--primary-color, #007bff);
+}
+
+.dropdownMenu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: var(--card-bg, white);
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 1000;
+  min-width: 130px;
+  margin-top: 2px;
+}
+
+.dropdownMenuUp {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 2px;
+}
+
+.dropdownItem {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-color, #333);
+  transition: background-color 0.2s ease;
+}
+
+.dropdownItem:hover {
+  background: var(--hover-bg, #f8f9fa);
+  color: var(--primary-color, #007bff);
+}
+
+.dropdownItem:first-child {
+  border-radius: 4px 4px 0 0;
+}
+
+.dropdownItem:last-child {
+  border-radius: 0 0 4px 4px;
+}
+
+/* Mobile Cards Styles */
+.propertyCard {
+  background: var(--card-bg, white);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: box-shadow 0.2s ease;
+}
+
+.propertyCard:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-color, #333);
+  line-height: 1.3;
+  flex: 1;
+  margin-right: 12px;
+}
+
+.cardActions {
+  flex-shrink: 0;
+}
+
+.cardLocation {
+  font-size: 14px;
+  color: var(--text-secondary-color, #666);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.cardPrice {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--success-color, #28a745);
+  margin-bottom: 8px;
+}
+
+.cardDetails {
+  font-size: 13px;
+  color: var(--text-secondary-color, #666);
+  margin-bottom: 12px;
+}
+
+.cardStatus {
+  display: flex;
+  justify-content: flex-start;
+}
+
+@media (max-width: 768px) {
+  .adminProperties {
+    padding: 10px;
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filtersContent {
+    flex-direction: column;
+  }
+  
+  .filterInput,
+  .filterSelect {
+    width: 100%;
+  }
+  
+  /* Esconder tabela e mostrar cards no mobile */
+  .desktopView {
+    display: none;
+  }
+  
+  .mobileView {
+    display: block;
+  }
+  
+  /* Ajustar dropdown para mobile */
+  .dropdownToggle {
+    padding: 4px 8px;
+    font-size: 14px;
+  }
+  
+  .dropdownMenu {
+    min-width: 120px;
+  }
+  
+  .dropdownItem {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+/* Dark mode global styles */
+:global(.dark) .adminProperties {
+  color: var(--text-color, #e0e0e0);
+}
+
+:global(.dark) .propertiesList {
+  background: var(--card-bg, #1a1a1a);
+  border: 1px solid var(--border-color, #333);
+}
+
+:global(.dark) .listHeader {
+  border-bottom-color: var(--border-color, #333);
+}
+
+:global(.dark) .total {
+  color: var(--text-secondary-color, #b0b0b0);
+}
+
+:global(.dark) .table {
+  background: var(--card-bg, #1a1a1a);
+}
+
+:global(.dark) .table th,
+:global(.dark) .table td {
+  border-bottom-color: var(--border-color, #333);
+}
+
+:global(.dark) .table th {
+  background: var(--table-header-bg, #2a2a2a);
+  color: var(--text-color, #e0e0e0);
+}
+
+:global(.dark) .titleCell strong {
+  color: var(--text-color, #e0e0e0);
+}
+
+:global(.dark) .titleCell small {
+  color: var(--text-secondary-color, #b0b0b0);
+}
+
+:global(.dark) .propertyCard {
+  background: var(--card-bg, #1a1a1a);
+  border-color: var(--border-color, #333);
+}
+
+:global(.dark) .cardTitle {
+  color: var(--text-color, #e0e0e0);
+}
+
+:global(.dark) .cardLocation {
+  color: var(--text-secondary-color, #b0b0b0);
+}
+
+:global(.dark) .cardDetails {
+  color: var(--text-secondary-color, #b0b0b0);
+}
+
+:global(.dark) .dropdownToggle {
+  background: transparent;
+  border-color: var(--border-color, #333);
+  color: var(--text-secondary-color, #b0b0b0);
+}
+
+:global(.dark) .dropdownToggle:hover {
+  background: var(--hover-bg, #2a2a2a);
+  border-color: var(--primary-color, #007bff);
+  color: var(--primary-color, #007bff);
+}
+
+:global(.dark) .dropdownMenu {
+  background: var(--card-bg, #1a1a1a);
+  border-color: var(--border-color, #333);
+}
+
+:global(.dark) .dropdownItem {
+  color: var(--text-color, #e0e0e0);
+}
+
+:global(.dark) .dropdownItem:hover {
+  background: var(--hover-bg, #2a2a2a);
+}

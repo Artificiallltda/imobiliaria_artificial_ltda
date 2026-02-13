@@ -1,5 +1,5 @@
 """
-Rotas para gerenciamento de imóveis
+Rotas para listagem de imóveis (público)
 """
 from decimal import Decimal
 from typing import List, Optional
@@ -11,11 +11,11 @@ from sqlalchemy.orm import Session
 from src.database.db import SessionLocal
 from src.database.models import Properties, PropertyStatus
 
-# Router para endpoints de imóveis
+# Router para endpoints públicos de imóveis
 router = APIRouter(prefix="/properties", tags=["Imóveis"])
 
 
-# Schemas (Pydantic Models) para validação e serialização
+# Schemas para resposta
 class PropertyResponse(BaseModel):
     """Schema para resposta de dados do imóvel"""
     id: str

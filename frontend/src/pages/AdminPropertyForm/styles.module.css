@@ -1,0 +1,260 @@
+/* AdminPropertyForm Styles */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  border-bottom: 2px solid var(--border-color, #e0e0e0);
+  padding-bottom: 20px;
+}
+
+.title {
+  margin: 0;
+  color: var(--text-color, #333);
+  font-size: 28px;
+}
+
+.backButton {
+  background: var(--secondary-color, #6c757d);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.backButton:hover {
+  opacity: 0.8;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formRow {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.formGroup {
+  flex: 1;
+  min-width: 200px;
+}
+
+.label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: var(--text-secondary-color, #555);
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 5px;
+  font-size: 16px;
+  box-sizing: border-box;
+  background-color: var(--input-bg, white);
+  color: var(--input-text, #333);
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--primary-color, #007bff);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.formActions {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.submitButton {
+  background: var(--primary-color, #007bff);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.submitButton:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  background: var(--secondary-color, #6c757d);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.cancelButton:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.cancelButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.errorMessage {
+  background: var(--error-bg, #f8d7da);
+  color: var(--error-text, #721c24);
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid var(--error-border, #f5c6cb);
+  margin-bottom: 20px;
+}
+
+.successMessage {
+  background: var(--success-bg, #d4edda);
+  color: var(--success-text, #155724);
+  padding: 15px;
+  border-radius: 5px;
+  border: 1px solid var(--success-border, #c3e6cb);
+  margin-bottom: 20px;
+}
+
+/* Dark mode variables will be handled by the global theme */
+:global(.dark) {
+  .container {
+    color: var(--text-color);
+  }
+  
+  .input,
+  .textarea,
+  .select {
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    border-color: var(--border-color);
+  }
+  
+  .errorMessage {
+    background-color: var(--error-bg);
+    color: var(--error-text);
+    border-color: var(--error-border);
+  }
+  
+  .successMessage {
+    background-color: var(--success-bg);
+    color: var(--success-text);
+    border-color: var(--success-border);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+  
+  .formRow {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .formGroup {
+    min-width: auto;
+  }
+  
+  .formActions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .submitButton,
+  .cancelButton {
+    width: 100%;
+  }
+}
+
+/* Dark mode global styles */
+:global(.dark) .container {
+  color: var(--text-color, #e0e0e0);
+}
+
+:global(.dark) .header {
+  border-bottom-color: var(--border-color, #333);
+}
+
+:global(.dark) .title {
+  color: var(--text-color, #e0e0e0);
+}
+
+:global(.dark) .input,
+:global(.dark) .textarea,
+:global(.dark) .select {
+  background-color: var(--input-bg, #2a2a2a);
+  color: var(--input-text, #e0e0e0);
+  border-color: var(--border-color, #333);
+}
+
+:global(.dark) .input:focus,
+:global(.dark) .textarea:focus,
+:global(.dark) .select:focus {
+  border-color: var(--primary-color, #007bff);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+:global(.dark) .label {
+  color: var(--text-secondary-color, #b0b0b0);
+}
+
+:global(.dark) .errorMessage {
+  background-color: var(--error-bg, #721c24);
+  color: var(--error-text, #f8d7da);
+  border-color: var(--error-border, #f5c6cb);
+}
+
+:global(.dark) .successMessage {
+  background-color: var(--success-bg, #155724);
+  color: var(--success-text, #d4edda);
+  border-color: var(--success-border, #c3e6cb);
+}
+
+:global(.dark) .submitButton {
+  background-color: var(--primary-color, #007bff);
+}
+
+:global(.dark) .cancelButton {
+  background-color: var(--secondary-color, #6c757d);
+}
