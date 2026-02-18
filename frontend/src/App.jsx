@@ -10,6 +10,9 @@ import Favorites from './pages/Favorites.jsx'
 import Messages from './pages/Messages.jsx'
 import Properties from './pages/Properties/index.jsx'
 import PropertyDetail from './pages/PropertyDetail/index.jsx'
+import Settings from './pages/Settings/index.jsx'
+import AdminProperties from './pages/AdminProperties/index.jsx'
+import AdminPropertyForm from './pages/AdminPropertyForm/index.jsx'
 import { isAuthenticated, logout as doLogout } from './services/auth.js'
 import { useTheme } from './context/ThemeContext.jsx'
 
@@ -45,9 +48,14 @@ function App() {
           <Route path="/imoveis" element={<Properties />} />
           <Route path="/imoveis/:id" element={<PropertyDetail />} />
 
+          {/* Administração */}
+          <Route path="/admin/properties" element={<AdminProperties />} />
+          <Route path="/admin/properties/new" element={<AdminPropertyForm />} />
+          <Route path="/admin/properties/:id/edit" element={<AdminPropertyForm />} />
+
           {/* Outros */}
           <Route path="/meus-favoritos" element={<SimplePage title="Meus Favoritos" />} />
-          <Route path="/personalizar" element={<SimplePage title="Personalizar" />} />
+          <Route path="/personalizar" element={<Settings />} />
 
           <Route path="*" element={<SimplePage title="404 - Não encontrado" />} />
         </Route>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, StatusTag, Button } from '../../ui/index.js';
-import { formatPrice, getStatusLabel, getStatusTone } from '../../../mocks/propertiesMock.jsx';
+import { formatPrice, translateStatus } from '../../../services/propertiesService.js';
 import styles from './styles.module.css';
 
 const PropertyCard = ({ property }) => {
@@ -9,42 +9,52 @@ const PropertyCard = ({ property }) => {
   const {
     id,
     title,
-    type,
     price,
     status,
-    location,
+    city,
     bedrooms,
     bathrooms,
-    area,
-    featured
+    area
   } = property;
 
   const handleViewDetails = () => {
     navigate(`/properties/${id}`);
   };
 
+  const handleEdit = () => {
+    navigate(`/admin/properties/${id}/edit`);
+  };
+
   const handleScheduleVisit = () => {
-    console.log('Agendar visita:', id);
     // TODO: Implementar modal de agendamento
   };
 
+  // Mapear status para o tom do StatusTag
+  const getStatusTone = (status) => {
+    switch (status) {
+      case 'AVAILABLE': return 'success';
+      case 'SOLD': return 'danger';
+      case 'RESERVED': return 'warning';
+      default: return 'neutral';
+    }
+  };
+
   return (
-    <Card className={`${styles.propertyCard} ${featured ? styles.featured : ''}`}>
+    <Card className={styles.propertyCard}>
       {/* Imagem do imóvel */}
       <div className={styles.cardImage}>
         <div className={styles.imagePlaceholder}>
-          <span className={styles.imageIcon}>🏠</span>
+          <img 
+            src="https://www.lopes.com.br/blog/wp-content/uploads/2014/10/Alphaville1.jpg" 
+            alt="Imóvel"
+            className={styles.propertyImage}
+          />
         </div>
-        {featured && (
-          <div className={styles.featuredBadge}>
-            ⭐ Destaque
-          </div>
-        )}
         <StatusTag 
           status={getStatusTone(status)} 
           className={styles.statusBadge}
         >
-          {getStatusLabel(status)}
+          {translateStatus(status)}
         </StatusTag>
       </div>
 
@@ -52,10 +62,9 @@ const PropertyCard = ({ property }) => {
       <div className={styles.cardContent}>
         <div className={styles.cardHeader}>
           <h3 className={styles.title}>{title}</h3>
-          <span className={styles.type}>{type}</span>
         </div>
 
-        <p className={styles.location}>📍 {location}</p>
+        <p className={styles.location}>📍 {city}</p>
         
         <div className={styles.price}>
           {formatPrice(price)}
@@ -71,6 +80,9 @@ const PropertyCard = ({ property }) => {
           <span className={styles.detail}>
             📐 {area}m²
           </span>
+          <span className={`${styles.detail} ${styles.statusDetail} ${styles[`status${status}`]}`}>
+            {translateStatus(status)}
+          </span>
         </div>
 
         <div className={styles.cardActions}>
@@ -80,6 +92,13 @@ const PropertyCard = ({ property }) => {
             onClick={handleViewDetails}
           >
             Ver Detalhes
+          </Button>
+          <Button 
+            variant="outline" 
+            size="small"
+            onClick={handleEdit}
+          >
+            Editar
           </Button>
           <Button 
             size="small"

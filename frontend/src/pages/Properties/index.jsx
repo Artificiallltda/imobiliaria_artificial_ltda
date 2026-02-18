@@ -4,16 +4,24 @@ import PropertyCard from '../../components/Properties/PropertyCard/index.jsx'
 import { propertiesMock, propertyTypes, propertyStatuses, bedroomOptions } from '../../mocks/propertiesMock.jsx'
 import styles from './styles.module.css'
 import { useI18n } from '../../i18n/index.jsx'
+import React, { useState, useEffect, useMemo } from 'react';
+import { Input, Select, Button, Card } from '../../components/ui/index.js';
+import PropertyCard from '../../components/Properties/PropertyCard/index.jsx';
+import { getProperties, validateFilters } from '../../services/propertiesService.js';
+import styles from './styles.module.css';
 
 const Properties = () => {
+  // Estados da aplicação
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [total, setTotal] = useState(0);
+  
   const { t } = useI18n()
 
   // Estado para filtros
   const [filters, setFilters] = useState({
-    search: '',
-    type: '',
-    status: '',
-    bedrooms: '',
+    city: '',
     minPrice: '',
     maxPrice: '',
     location: '',
@@ -32,10 +40,7 @@ const Properties = () => {
   // Função para limpar filtros
   const clearFilters = () => {
     setFilters({
-      search: '',
-      type: '',
-      status: '',
-      bedrooms: '',
+      city: '',
       minPrice: '',
       maxPrice: '',
       location: '',
@@ -181,6 +186,7 @@ const Properties = () => {
                 value={filters.status}
                 onChange={(e) => handleFilterChange('status', e.target.value)}
                 options={statusOptions}
+            
               />
 
               <Select
@@ -222,7 +228,26 @@ const Properties = () => {
 
       {/* Lista de imóveis */}
       <div className={styles.propertiesSection}>
-        {filteredProperties.length === 0 ? (
+        {loading ? (
+          <Card className={styles.loadingState}>
+            <div className={styles.loadingContent}>
+              <span className={styles.loadingIcon}>⏳</span>
+              <h3>Carregando imóveis...</h3>
+              <p>Buscando as melhores oportunidades para você.</p>
+            </div>
+          </Card>
+        ) : error ? (
+          <Card className={styles.errorState}>
+            <div className={styles.errorContent}>
+              <span className={styles.errorIcon}>❌</span>
+              <h3>Erro ao carregar imóveis</h3>
+              <p>{error}</p>
+              <Button onClick={fetchProperties}>
+                Tentar Novamente
+              </Button>
+            </div>
+          </Card>
+        ) : properties.length === 0 ? (
           <Card className={styles.emptyState}>
             <div className={styles.emptyContent}>
               <span className={styles.emptyIcon}>🔍</span>

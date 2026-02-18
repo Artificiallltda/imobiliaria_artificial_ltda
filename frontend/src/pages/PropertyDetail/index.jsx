@@ -47,7 +47,6 @@ const PropertyDetail = () => {
 
   const handleScheduleVisit = () => {
     // TODO - Implementar agendamento de visita
-    console.log('Agendar visita para:', property?.id);
   };
 
   const handleWhatsApp = () => {
@@ -268,7 +267,6 @@ const PropertyDetail = () => {
             <Button
               onClick={() => {
                 // TODO - Integrar CTA com sistema de chat
-                console.log('Iniciar chat sobre imóvel:', property.id);
                 setIsChatModalOpen(false);
               }}
             >
