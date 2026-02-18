@@ -6,6 +6,7 @@ export default {
   stats: {
     results: 'Resultados',
     available: 'Disponibles',
+    reserved: 'Reservados',
     featured: 'Destacados',
   },
 
@@ -13,6 +14,9 @@ export default {
     title: 'Filtros',
     show: 'Mostrar filtros',
     hide: 'Ocultar filtros',
+    statusAll: 'Todos los estados',
+    bedroomsAll: 'Cualquiera',
+    cityPlaceholder: 'Buscar por ciudad...',
     searchPlaceholder: 'Buscar por título o ubicación...',
     type: 'Tipo de inmueble',
     status: 'Estado',
@@ -32,9 +36,22 @@ export default {
   },
 
   status: {
+    available: 'Disponible',
+    reserved: 'Reservado',
+    sold: 'Vendido',
     disponivel: 'Disponible',
     reservado: 'Reservado',
     vendido: 'Vendido',
+  },
+
+  loading: {
+    title: 'Cargando inmuebles...',
+    subtitle: 'Buscando las mejores oportunidades para ti.',
+  },
+
+  error: {
+    title: 'Error al cargar inmuebles',
+    retry: 'Intentar de nuevo',
   },
 
   bedrooms: {
@@ -141,8 +158,15 @@ export default {
     all: 'Todos',
     new: 'Nuevo',
     contacting: 'En contacto',
+    pending: 'Pendiente',
+    inService: 'En atención',
     converted: 'Convertido',
     lost: 'Perdido',
+  },
+
+  list: {
+    viewDetail: 'Ver detalle →',
+    createdAt: 'Creado el {date}',
   },
 },
   favorites: {
@@ -206,22 +230,6 @@ export default {
 
   noMessages: 'Sin mensajes',
 },
-  leads: {
-  title: 'Leads',
-  subtitle: 'Haz clic en un lead para ver el detalle (mock).',
-
-  list: {
-    viewDetail: 'Ver detalle →',
-    createdAt: 'Creado el {date}',
-  },
-
-  status: {
-    pending: 'Pendiente',
-    inService: 'En atención',
-    converted: 'Convertido',
-    lost: 'Perdido',
-  },
-},
   sidebar: {
   logo: 'Inmobiliaria',
 
@@ -235,7 +243,8 @@ export default {
     leads: 'Leads',
     favoritesList: 'Lista de Favoritos',
     messages: 'Mensajes',
-    propertiesList: 'Lista de Inmuebles',
+    propertiesList: 'Inmuebles',
+    adminProperties: 'Administrar Inmuebles',
     myFavorites: 'Mis Favoritos',
     customize: 'Personalizar',
   },

@@ -1,264 +1,206 @@
-import React, { useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Input, Select, Button, Card } from '../../components/ui/index.js'
 import PropertyCard from '../../components/Properties/PropertyCard/index.jsx'
-import { propertiesMock, propertyTypes, propertyStatuses, bedroomOptions } from '../../mocks/propertiesMock.jsx'
+import { getProperties, validateFilters } from '../../services/propertiesService.js'
 import styles from './styles.module.css'
 import { useI18n } from '../../i18n/index.jsx'
-import React, { useState, useEffect, useMemo } from 'react';
-import { Input, Select, Button, Card } from '../../components/ui/index.js';
-import PropertyCard from '../../components/Properties/PropertyCard/index.jsx';
-import { getProperties, validateFilters } from '../../services/propertiesService.js';
-import styles from './styles.module.css';
 
-const Properties = () => {
-  // Estados da aplicação
-  const [properties, setProperties] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [total, setTotal] = useState(0);
-  
+export default function Properties() {
   const { t } = useI18n()
 
-  // Estado para filtros
+  const [properties, setProperties] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [total, setTotal] = useState(0)
+
   const [filters, setFilters] = useState({
     city: '',
     minPrice: '',
     maxPrice: '',
-    location: '',
+    bedrooms: '',
+    status: '',
   })
-
   const [showFilters, setShowFilters] = useState(false)
 
-  // Função para atualizar filtros
   const handleFilterChange = (field, value) => {
-    setFilters((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
+    setFilters((prev) => ({ ...prev, [field]: value }))
   }
 
-  // Função para limpar filtros
   const clearFilters = () => {
-    setFilters({
-      city: '',
-      minPrice: '',
-      maxPrice: '',
-      location: '',
-    })
+    setFilters({ city: '', minPrice: '', maxPrice: '', bedrooms: '', status: '' })
   }
 
-  // === Tradução dos options vindos do mock (sem quebrar estrutura) ===
-  const typeOptions = useMemo(() => {
-    return (propertyTypes || []).map((opt) => ({
-      ...opt,
-      // tenta traduzir por chave semântica; se não existir, cai no label original
-      label: t(`properties.types.${String(opt.value || '').toLowerCase()}`, { defaultValue: opt.label }),
-    }))
-  }, [t])
+  const fetchProperties = async () => {
+    try {
+      setLoading(true)
+      setError(null)
 
-  const statusOptions = useMemo(() => {
-    return (propertyStatuses || []).map((opt) => ({
-      ...opt,
-      label: t(`properties.status.${String(opt.value || '').toLowerCase()}`, { defaultValue: opt.label }),
-    }))
-  }, [t])
+      const validFilters = validateFilters(filters)
+      const response = await getProperties(validFilters)
 
-  const bedroomsOpts = useMemo(() => {
-    return (bedroomOptions || []).map((opt) => {
-      // bedroomOptions geralmente vem tipo: {value:'1', label:'1'} etc
-      // vamos traduzir apenas se tiver chaves específicas (ex: 4+)
-      const v = String(opt.value || '')
-      const key = v === '4' ? '4plus' : v
-      return {
-        ...opt,
-        label: t(`properties.bedrooms.${key}`, { defaultValue: opt.label }),
-      }
-    })
-  }, [t])
+      setProperties(response?.data ?? [])
+      setTotal(response?.total ?? 0)
+    } catch (err) {
+      setError(err?.message || 'Erro ao carregar imóveis')
+      setProperties([])
+      setTotal(0)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  // Lógica de filtragem no frontend
-  const filteredProperties = useMemo(() => {
-    return propertiesMock.filter((property) => {
-      // Filtro de busca (título e localização)
-      const searchMatch =
-        !filters.search ||
-        property.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-        property.location.toLowerCase().includes(filters.search.toLowerCase())
+  useEffect(() => {
+    fetchProperties()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.city, filters.minPrice, filters.maxPrice, filters.bedrooms, filters.status])
 
-      // Filtro de tipo
-      const typeMatch = !filters.type || property.type === filters.type
-
-      // Filtro de status
-      const statusMatch = !filters.status || property.status === filters.status
-
-      // Filtro de quartos
-      const bedroomsMatch =
-        !filters.bedrooms ||
-        (filters.bedrooms === '4' ? property.bedrooms >= 4 : property.bedrooms === parseInt(filters.bedrooms))
-
-      // Filtro de preço mínimo
-      const minPriceMatch = !filters.minPrice || property.price >= parseInt(filters.minPrice)
-
-      // Filtro de preço máximo
-      const maxPriceMatch = !filters.maxPrice || property.price <= parseInt(filters.maxPrice)
-
-      // Filtro de localização
-      const locationMatch = !filters.location || property.location.toLowerCase().includes(filters.location.toLowerCase())
-
-      return searchMatch && typeMatch && statusMatch && bedroomsMatch && minPriceMatch && maxPriceMatch && locationMatch
-    })
-  }, [filters])
-
-  // Estatísticas dos resultados
   const stats = useMemo(() => {
-    const total = propertiesMock.length
-    const filtered = filteredProperties.length
-    const available = filteredProperties.filter((p) => p.status === 'disponivel').length
-    const featured = filteredProperties.filter((p) => p.featured).length
+    const available = properties.filter((p) => p.status === 'AVAILABLE').length
+    const reserved = properties.filter((p) => p.status === 'RESERVED').length
+    const sold = properties.filter((p) => p.status === 'SOLD').length
+    return { total, available, reserved, sold }
+  }, [properties, total])
 
-    return { total, filtered, available, featured }
-  }, [filteredProperties])
+  const statusOptions = useMemo(
+    () => [
+      { value: '', label: t('properties.filters.statusAll', { defaultValue: 'Todos os status' }) },
+      { value: 'AVAILABLE', label: t('properties.status.available', { defaultValue: 'Disponível' }) },
+      { value: 'RESERVED', label: t('properties.status.reserved', { defaultValue: 'Reservado' }) },
+      { value: 'SOLD', label: t('properties.status.sold', { defaultValue: 'Vendido' }) },
+    ],
+    [t],
+  )
+
+  const bedroomOptions = useMemo(
+    () => [
+      { value: '', label: t('properties.filters.bedroomsAll', { defaultValue: 'Qualquer' }) },
+      { value: '1', label: '1' },
+      { value: '2', label: '2' },
+      { value: '3', label: '3' },
+      { value: '4', label: '4+' },
+    ],
+    [t],
+  )
 
   return (
     <div className={styles.propertiesPage}>
-      {/* Header da página */}
       <div className={styles.pageHeader}>
         <div className={styles.headerContent}>
-          <h1 className={styles.pageTitle}>{t('properties.title')}</h1>
-          <p className={styles.pageSubtitle}>{t('properties.subtitle')}</p>
+          <h1 className={styles.pageTitle}>{t('properties.title', { defaultValue: 'Catálogo de Imóveis' })}</h1>
+          <p className={styles.pageSubtitle}>{t('properties.subtitle', { defaultValue: 'Encontre o imóvel perfeito para você' })}</p>
         </div>
 
-        {/* Estatísticas */}
         <div className={styles.stats}>
           <div className={styles.statItem}>
-            <span className={styles.statNumber}>{stats.filtered}</span>
-            <span className={styles.statLabel}>{t('properties.stats.results')}</span>
+            <span className={styles.statNumber}>{stats.total}</span>
+            <span className={styles.statLabel}>{t('properties.stats.results', { defaultValue: 'Resultados' })}</span>
           </div>
           <div className={styles.statItem}>
             <span className={styles.statNumber}>{stats.available}</span>
-            <span className={styles.statLabel}>{t('properties.stats.available')}</span>
+            <span className={styles.statLabel}>{t('properties.stats.available', { defaultValue: 'Disponíveis' })}</span>
           </div>
           <div className={styles.statItem}>
-            <span className={styles.statNumber}>{stats.featured}</span>
-            <span className={styles.statLabel}>{t('properties.stats.featured')}</span>
+            <span className={styles.statNumber}>{stats.reserved}</span>
+            <span className={styles.statLabel}>{t('properties.stats.reserved', { defaultValue: 'Reservados' })}</span>
           </div>
         </div>
       </div>
 
-      {/* Área de filtros */}
       <Card className={styles.filtersSection}>
         <div className={styles.filtersHeader}>
-          <h2 className={styles.filtersTitle}>{t('properties.filters.title')}</h2>
-
+          <h2 className={styles.filtersTitle}>{t('properties.filters.title', { defaultValue: 'Filtros' })}</h2>
           <Button
             variant="outline"
             size="small"
             onClick={() => setShowFilters(!showFilters)}
             className={styles.toggleFilters}
           >
-            {showFilters ? t('properties.filters.hide') : t('properties.filters.show')}
+            {showFilters
+              ? t('properties.filters.hide', { defaultValue: 'Ocultar Filtros' })
+              : t('properties.filters.show', { defaultValue: 'Mostrar Filtros' })}
           </Button>
         </div>
 
-        {/* Busca rápida (sempre visível) */}
         <div className={styles.quickSearch}>
           <Input
-            placeholder={t('properties.filters.searchPlaceholder')}
-            value={filters.search}
-            onChange={(e) => handleFilterChange('search', e.target.value)}
+            placeholder={t('properties.filters.cityPlaceholder', { defaultValue: 'Buscar por cidade...' })}
+            value={filters.city}
+            onChange={(e) => handleFilterChange('city', e.target.value)}
             className={styles.searchInput}
           />
         </div>
 
-        {/* Filtros avançados */}
         {showFilters && (
           <div className={styles.advancedFilters}>
             <div className={styles.filtersGrid}>
               <Select
-                placeholder={t('properties.filters.type')}
-                value={filters.type}
-                onChange={(e) => handleFilterChange('type', e.target.value)}
-                options={typeOptions}
-              />
-
-              <Select
-                placeholder={t('properties.filters.status')}
+                placeholder={t('properties.filters.status', { defaultValue: 'Status' })}
                 value={filters.status}
                 onChange={(e) => handleFilterChange('status', e.target.value)}
                 options={statusOptions}
-            
               />
 
               <Select
-                placeholder={t('properties.filters.bedrooms')}
+                placeholder={t('properties.filters.bedrooms', { defaultValue: 'Quartos' })}
                 value={filters.bedrooms}
                 onChange={(e) => handleFilterChange('bedrooms', e.target.value)}
-                options={bedroomsOpts}
+                options={bedroomOptions}
               />
 
               <Input
-                placeholder={t('properties.filters.minPrice')}
+                placeholder={t('properties.filters.minPrice', { defaultValue: 'Preço mínimo' })}
                 type="number"
                 value={filters.minPrice}
                 onChange={(e) => handleFilterChange('minPrice', e.target.value)}
               />
 
               <Input
-                placeholder={t('properties.filters.maxPrice')}
+                placeholder={t('properties.filters.maxPrice', { defaultValue: 'Preço máximo' })}
                 type="number"
                 value={filters.maxPrice}
                 onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-              />
-
-              <Input
-                placeholder={t('properties.filters.location')}
-                value={filters.location}
-                onChange={(e) => handleFilterChange('location', e.target.value)}
               />
             </div>
 
             <div className={styles.filtersActions}>
               <Button variant="outline" onClick={clearFilters}>
-                {t('properties.filters.clear')}
+                {t('properties.filters.clear', { defaultValue: 'Limpar Filtros' })}
               </Button>
             </div>
           </div>
         )}
       </Card>
 
-      {/* Lista de imóveis */}
       <div className={styles.propertiesSection}>
         {loading ? (
           <Card className={styles.loadingState}>
             <div className={styles.loadingContent}>
               <span className={styles.loadingIcon}>⏳</span>
-              <h3>Carregando imóveis...</h3>
-              <p>Buscando as melhores oportunidades para você.</p>
+              <h3>{t('properties.loading.title', { defaultValue: 'Carregando imóveis...' })}</h3>
+              <p>{t('properties.loading.subtitle', { defaultValue: 'Buscando as melhores oportunidades para você.' })}</p>
             </div>
           </Card>
         ) : error ? (
           <Card className={styles.errorState}>
             <div className={styles.errorContent}>
               <span className={styles.errorIcon}>❌</span>
-              <h3>Erro ao carregar imóveis</h3>
+              <h3>{t('properties.error.title', { defaultValue: 'Erro ao carregar imóveis' })}</h3>
               <p>{error}</p>
-              <Button onClick={fetchProperties}>
-                Tentar Novamente
-              </Button>
+              <Button onClick={fetchProperties}>{t('properties.error.retry', { defaultValue: 'Tentar Novamente' })}</Button>
             </div>
           </Card>
         ) : properties.length === 0 ? (
           <Card className={styles.emptyState}>
             <div className={styles.emptyContent}>
               <span className={styles.emptyIcon}>🔍</span>
-              <h3>{t('properties.empty.title')}</h3>
-              <p>{t('properties.empty.subtitle')}</p>
-              <Button onClick={clearFilters}>{t('properties.empty.action')}</Button>
+              <h3>{t('properties.empty.title', { defaultValue: 'Nenhum imóvel encontrado' })}</h3>
+              <p>{t('properties.empty.subtitle', { defaultValue: 'Tente ajustar os filtros ou fazer uma nova busca.' })}</p>
+              <Button onClick={clearFilters}>{t('properties.empty.action', { defaultValue: 'Limpar Filtros' })}</Button>
             </div>
           </Card>
         ) : (
           <div className={styles.propertiesGrid}>
-            {filteredProperties.map((property) => (
+            {properties.map((property) => (
               <PropertyCard key={property.id} property={property} />
             ))}
           </div>
@@ -267,5 +209,3 @@ const Properties = () => {
     </div>
   )
 }
-
-export default Properties

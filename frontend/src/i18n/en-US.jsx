@@ -6,6 +6,7 @@ export default {
   stats: {
     results: 'Results',
     available: 'Available',
+    reserved: 'Reserved',
     featured: 'Featured',
   },
 
@@ -13,6 +14,9 @@ export default {
     title: 'Filters',
     show: 'Show filters',
     hide: 'Hide filters',
+    statusAll: 'All statuses',
+    bedroomsAll: 'Any',
+    cityPlaceholder: 'Search by city...',
     searchPlaceholder: 'Search by title or location...',
     type: 'Property type',
     status: 'Status',
@@ -32,9 +36,22 @@ export default {
   },
 
   status: {
+    available: 'Available',
+    reserved: 'Reserved',
+    sold: 'Sold',
     disponivel: 'Available',
     reservado: 'Reserved',
     vendido: 'Sold',
+  },
+
+  loading: {
+    title: 'Loading properties...',
+    subtitle: 'Fetching the best opportunities for you.',
+  },
+
+  error: {
+    title: 'Error loading properties',
+    retry: 'Try again',
   },
 
   bedrooms: {
@@ -141,8 +158,15 @@ export default {
     all: 'All',
     new: 'New',
     contacting: 'Contacting',
+    pending: 'Pending',
+    inService: 'In progress',
     converted: 'Converted',
     lost: 'Lost',
+  },
+
+  list: {
+    viewDetail: 'View details →',
+    createdAt: 'Created on {date}',
   },
 },
   favorites: {
@@ -206,22 +230,6 @@ export default {
 
   noMessages: 'No messages',
 },
-  leads: {
-  title: 'Leads',
-  subtitle: 'Click a lead to view details (mock).',
-
-  list: {
-    viewDetail: 'View details →',
-    createdAt: 'Created on {date}',
-  },
-
-  status: {
-    pending: 'Pending',
-    inService: 'In progress',
-    converted: 'Converted',
-    lost: 'Lost',
-  },
-},
   sidebar: {
   logo: 'Real Estate',
 
@@ -235,7 +243,8 @@ export default {
     leads: 'Leads',
     favoritesList: 'Favorites List',
     messages: 'Messages',
-    propertiesList: 'Properties List',
+    propertiesList: 'Properties',
+    adminProperties: 'Manage Properties',
     myFavorites: 'My Favorites',
     customize: 'Customize',
   },

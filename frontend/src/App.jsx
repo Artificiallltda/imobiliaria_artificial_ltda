@@ -15,6 +15,7 @@ import AdminProperties from './pages/AdminProperties/index.jsx'
 import AdminPropertyForm from './pages/AdminPropertyForm/index.jsx'
 import { isAuthenticated, logout as doLogout } from './services/auth.js'
 import { useTheme } from './context/ThemeContext.jsx'
+import { useI18n } from './i18n/index.jsx'
 
 function App() {
   const [auth, setAuth] = useState(false)
@@ -71,6 +72,7 @@ function AppLayout({ onLogout }) {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const { theme, toggleTheme } = useTheme()
+  const { t, locale, setLocale } = useI18n()
 
   useEffect(() => {
     const onResize = () => {
@@ -132,6 +134,21 @@ function AppLayout({ onLogout }) {
 
             <button className="icon-btn" type="button" aria-label="Configurações">
               <SettingsIcon />
+            </button>
+
+            {/* Idioma */}
+            <button
+              className="icon-btn"
+              type="button"
+              onClick={() => {
+                const order = ['pt-BR', 'en-US', 'es-ES']
+                const idx = Math.max(0, order.indexOf(locale))
+                setLocale(order[(idx + 1) % order.length])
+              }}
+              aria-label={t('language.label')}
+              title={`${t('language.label')}: ${locale}`}
+            >
+              🌐
             </button>
 
             {/* Toggle tema */}

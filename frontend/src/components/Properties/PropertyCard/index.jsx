@@ -18,7 +18,7 @@ const PropertyCard = ({ property }) => {
   } = property;
 
   const handleViewDetails = () => {
-    navigate(`/properties/${id}`);
+    navigate(`/imoveis/${id}`);
   };
 
   const handleEdit = () => {

@@ -7,6 +7,7 @@ export default {
   stats: {
     results: 'Resultados',
     available: 'Disponíveis',
+    reserved: 'Reservados',
     featured: 'Destaques',
   },
 
@@ -14,6 +15,9 @@ export default {
     title: 'Filtros',
     show: 'Mostrar filtros',
     hide: 'Ocultar filtros',
+    statusAll: 'Todos os status',
+    bedroomsAll: 'Qualquer',
+    cityPlaceholder: 'Buscar por cidade...',
     searchPlaceholder: 'Buscar por título ou localização...',
     type: 'Tipo de imóvel',
     status: 'Status',
@@ -34,9 +38,22 @@ export default {
   },
 
   status: {
+    available: 'Disponível',
+    reserved: 'Reservado',
+    sold: 'Vendido',
     disponivel: 'Disponível',
     reservado: 'Reservado',
     vendido: 'Vendido',
+  },
+
+  loading: {
+    title: 'Carregando imóveis...',
+    subtitle: 'Buscando as melhores oportunidades para você.',
+  },
+
+  error: {
+    title: 'Erro ao carregar imóveis',
+    retry: 'Tentar Novamente',
   },
 
   bedrooms: {
@@ -143,8 +160,15 @@ export default {
     all: 'Todos',
     new: 'Novo',
     contacting: 'Em contato',
+    pending: 'Pendente',
+    inService: 'Em atendimento',
     converted: 'Convertido',
     lost: 'Perdido',
+  },
+
+  list: {
+    viewDetail: 'Ver detalhe →',
+    createdAt: 'Criado em {date}',
   },
 },
   favorites: {
@@ -208,22 +232,6 @@ export default {
 
   noMessages: 'Sem mensagens',
 },
-  leads: {
-  title: 'Leads',
-  subtitle: 'Clique em um lead para ver o detalhe (mock).',
-
-  list: {
-    viewDetail: 'Ver detalhe →',
-    createdAt: 'Criado em {date}',
-  },
-
-  status: {
-    pending: 'Pendente',
-    inService: 'Em atendimento',
-    converted: 'Convertido',
-    lost: 'Perdido',
-  },
-},
   sidebar: {
   logo: 'Imobiliária',
 
@@ -237,7 +245,8 @@ export default {
     leads: 'Leads',
     favoritesList: 'Lista de Favoritos',
     messages: 'Mensagens',
-    propertiesList: 'Lista de Imóveis',
+    propertiesList: 'Imóveis',
+    adminProperties: 'Gerenciar Imóveis',
     myFavorites: 'Meus Favoritos',
     customize: 'Personalizar',
   },
