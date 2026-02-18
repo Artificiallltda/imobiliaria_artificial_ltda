@@ -61,6 +61,19 @@
   color: var(--color-primary-800);
 }
 
+/* Dark mode styles for outline button */
+html[data-theme="dark"] .outline {
+  background: var(--input-bg);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+html[data-theme="dark"] .outline:hover:not(:disabled) {
+  background: var(--hover-bg);
+  border-color: var(--primary);
+  color: var(--text);
+}
+
 .button[data-loading='true'] {
   opacity: 0.8;
 }

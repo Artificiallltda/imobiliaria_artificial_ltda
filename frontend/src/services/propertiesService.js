@@ -6,6 +6,34 @@
 const API_BASE_URL = 'http://127.0.0.1:8000';
 
 /**
+ * Obtém o token de autenticação do localStorage
+ * @returns {string|null} Token JWT ou null
+ */
+function getAuthToken() {
+  const token = localStorage.getItem('authToken');
+  return token ? `Bearer ${token}` : null;
+}
+
+/**
+ * Configurações padrão para requisições autenticadas
+ * @param {Object} options - Opções adicionais
+ * @returns {Object} Headers configurados
+ */
+function getAuthHeaders(options = {}) {
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers
+  };
+  
+  const token = getAuthToken();
+  if (token) {
+    headers.Authorization = token;
+  }
+  
+  return headers;
+}
+
+/**
  * Constrói a URL com parâmetros de query
  * @param {string} baseUrl - URL base
  * @param {Object} params - Parâmetros para adicionar à query string
@@ -59,6 +87,129 @@ export async function getProperties(filters = {}) {
     throw new Error(
       error.message || 
       'Não foi possível carregar os imóveis. Tente novamente mais tarde.'
+    );
+  }
+}
+
+/**
+ * Busca um imóvel específico por ID
+ * @param {string} id - UUID do imóvel
+ * @returns {Promise<Object>} Promise com os dados do imóvel
+ */
+export async function getPropertyById(id) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/properties/${id}`, {
+      headers: getAuthHeaders()
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.detail || 
+        `Erro ${response.status}: ${response.statusText}`
+      );
+    }
+    
+    return await response.json();
+    
+  } catch (error) {
+    throw new Error(
+      error.message || 
+      'Não foi possível carregar o imóvel. Tente novamente mais tarde.'
+    );
+  }
+}
+
+/**
+ * Cria um novo imóvel
+ * @param {Object} propertyData - Dados do imóvel
+ * @returns {Promise<Object>} Promise com o imóvel criado
+ */
+export async function createProperty(propertyData) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/properties/`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(propertyData)
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.detail || 
+        `Erro ${response.status}: ${response.statusText}`
+      );
+    }
+    
+    return await response.json();
+    
+  } catch (error) {
+    throw new Error(
+      error.message || 
+      'Não foi possível criar o imóvel. Tente novamente mais tarde.'
+    );
+  }
+}
+
+/**
+ * Atualiza um imóvel existente
+ * @param {string} id - UUID do imóvel
+ * @param {Object} propertyData - Dados para atualizar
+ * @returns {Promise<Object>} Promise com o imóvel atualizado
+ */
+export async function updateProperty(id, propertyData) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/properties/${id}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(propertyData)
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.detail || 
+        `Erro ${response.status}: ${response.statusText}`
+      );
+    }
+    
+    return await response.json();
+    
+  } catch (error) {
+    throw new Error(
+      error.message || 
+      'Não foi possível atualizar o imóvel. Tente novamente mais tarde.'
+    );
+  }
+}
+
+/**
+ * Remove um imóvel
+ * @param {string} id - UUID do imóvel
+ * @returns {Promise<void>}
+ */
+export async function deleteProperty(id) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/properties/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.detail || 
+        `Erro ${response.status}: ${response.statusText}`
+      );
+    }
+    
+    // DELETE retorna 204 No Content
+    return;
+    
+  } catch (error) {
+    throw new Error(
+      error.message || 
+      'Não foi possível remover o imóvel. Tente novamente mais tarde.'
     );
   }
 }
