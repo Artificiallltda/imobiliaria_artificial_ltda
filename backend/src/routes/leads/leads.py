@@ -4,8 +4,9 @@ Rotas para leads
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
+from sqlalchemy import or_, func
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -66,6 +67,14 @@ class LeadListResponse(BaseModel):
         from_attributes = True
 
 
+class LeadListPaginatedResponse(BaseModel):
+    """Schema para resposta paginada da lista de leads"""
+    data: List[LeadListResponse]
+    total: int
+    page: int
+    limit: int
+
+
 class UpdateLeadStatusRequest(BaseModel):
     """Schema para requisição de atualização de status"""
     status: str
@@ -80,22 +89,73 @@ def get_db():
         db.close()
 
 
-@router.get("/", response_model=List[LeadListResponse])
-def list_leads(db: Session = Depends(get_db)):
-    """Listar todos os leads"""
-    leads = db.query(Leads).order_by(Leads.created_at.desc()).all()
+@router.get("/", response_model=LeadListPaginatedResponse)
+def list_leads(
+    status: Optional[str] = Query(None, description="Filtrar por status do lead"),
+    search: Optional[str] = Query(None, description="Buscar por nome, email ou telefone"),
+    property_id: Optional[str] = Query(None, description="Filtrar por ID do imóvel"),
+    page: int = Query(1, ge=1, description="Página atual (mínimo 1)"),
+    limit: int = Query(10, ge=1, le=100, description="Itens por página (1-100)"),
+    db: Session = Depends(get_db)
+):
+    """Listar leads com filtros e paginação"""
+    query = db.query(Leads)
 
-    return [
-        LeadListResponse(
-            id=str(lead.id),
-            name=lead.name,
-            email=lead.email,
-            phone=lead.phone,
-            status=lead.status.value,
-            source=lead.source,
-            created_at=lead.created_at
-        ) for lead in leads
-    ]
+    # Filtro por status
+    if status:
+        try:
+            lead_status = LeadStatus(status)
+            query = query.filter(Leads.status == lead_status)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Status inválido")
+
+    # Filtro por imóvel
+    if property_id:
+        try:
+            property_uuid = UUID(property_id)
+            query = query.filter(Leads.property_id == property_uuid)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="ID do imóvel inválido")
+
+    # Busca por nome, email ou telefone
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            or_(
+                Leads.name.ilike(search_term),
+                Leads.email.ilike(search_term),
+                Leads.phone.ilike(search_term)
+            )
+        )
+
+    # Contar total de registros (antes da paginação)
+    total = query.count()
+
+    # Ordenação e paginação
+    leads = (
+        query
+        .order_by(Leads.created_at.desc())
+        .offset((page - 1) * limit)
+        .limit(limit)
+        .all()
+    )
+
+    return LeadListPaginatedResponse(
+        data=[
+            LeadListResponse(
+                id=str(lead.id),
+                name=lead.name,
+                email=lead.email,
+                phone=lead.phone,
+                status=lead.status.value,
+                source=lead.source,
+                created_at=lead.created_at
+            ) for lead in leads
+        ],
+        total=total,
+        page=page,
+        limit=limit
+    )
 
 
 @router.get("/{lead_id}", response_model=LeadResponse)

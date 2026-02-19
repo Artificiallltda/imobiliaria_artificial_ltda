@@ -130,7 +130,7 @@ export default {
 },
   leads: {
   title: 'Leads',
-  subtitle: 'Acompanhe o funil de atendimento (dados mockados).',
+  subtitle: 'Acompanhe o funil de atendimento.',
 
   resultsPill: '{count} resultado(s)',
 
