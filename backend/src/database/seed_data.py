@@ -7,7 +7,7 @@ from decimal import Decimal
 from sqlalchemy.orm import Session
 
 from src.database.db import SessionLocal, engine
-from src.database.models import Properties, PropertyStatus, Base
+from src.database.models import Properties, PropertyStatus, Base, Leads, LeadMessages, LeadStatus
 
 
 def create_sample_properties():
@@ -133,5 +133,110 @@ def create_sample_properties():
         db.close()
 
 
+def create_sample_leads():
+    """Cria leads de exemplo para testes"""
+    
+    db = SessionLocal()
+    
+    try:
+        # Verificar se já existem leads
+        existing_count = db.query(Leads).count()
+        if existing_count > 0:
+            print(f"Já existem {existing_count} leads no banco. Nenhum dado de teste será criado.")
+            return
+        
+        # Pegar alguns imóveis existentes para vincular aos leads
+        properties = db.query(Properties).limit(3).all()
+        property_ids = [p.id for p in properties] if properties else []
+        
+        # Lista de leads de exemplo
+        sample_leads = [
+            {
+                "id": uuid.uuid4(),
+                "name": "Gean Carlos",
+                "email": "gean.carlos@exemplo.com",
+                "phone": "11999999999",
+                "status": LeadStatus.NEW,
+                "source": "SITE",
+                "property_id": property_ids[0] if len(property_ids) > 0 else None,
+            },
+            {
+                "id": uuid.uuid4(),
+                "name": "Deborah Victoria",
+                "email": "deborah.victoria@exemplo.com",
+                "phone": "11888888888",
+                "status": LeadStatus.QUALIFYING,
+                "source": "FACEBOOK",
+                "property_id": property_ids[1] if len(property_ids) > 1 else None,
+            },
+            {
+                "id": uuid.uuid4(),
+                "name": "João Silva",
+                "email": "joao.silva@email.com",
+                "phone": "11777777777",
+                "status": LeadStatus.QUALIFIED,
+                "source": "SITE",
+                "property_id": property_ids[2] if len(property_ids) > 2 else None,
+            },
+            {
+                "id": uuid.uuid4(),
+                "name": "Maria Oliveira",
+                "email": "maria.oliveira@email.com",
+                "phone": None,
+                "status": LeadStatus.LOST,
+                "source": "GOOGLE",
+                "property_id": None,
+            },
+        ]
+        
+        # Inserir leads no banco
+        created_leads = []
+        for lead_data in sample_leads:
+            lead_obj = Leads(**lead_data)
+            db.add(lead_obj)
+            created_leads.append(lead_obj)
+        
+        db.commit()
+        print(f"✅ {len(sample_leads)} leads de exemplo criados com sucesso!")
+        
+        # Criar algumas mensagens de exemplo para os leads
+        sample_messages = [
+            {
+                "id": uuid.uuid4(),
+                "lead_id": created_leads[0].id,
+                "sender": "USER",
+                "message": "Olá, estou interessado no apartamento no centro.",
+            },
+            {
+                "id": uuid.uuid4(),
+                "lead_id": created_leads[0].id,
+                "sender": "AGENT",
+                "message": "Oi Gean! Claro, posso te ajudar. Vamos marcar uma visita?",
+            },
+            {
+                "id": uuid.uuid4(),
+                "lead_id": created_leads[1].id,
+                "sender": "USER",
+                "message": "Gostaria de saber mais sobre a casa na vila.",
+            },
+        ]
+        
+        # Inserir mensagens no banco
+        for msg_data in sample_messages:
+            msg_obj = LeadMessages(**msg_data)
+            db.add(msg_obj)
+        
+        db.commit()
+        print(f"✅ {len(sample_messages)} mensagens de exemplo criadas com sucesso!")
+        
+    except Exception as e:
+        db.rollback()
+        print(f"❌ Erro ao criar dados de teste: {e}")
+        raise
+    finally:
+        db.close()
+
+
 if __name__ == "__main__":
     create_sample_properties()
+    create_sample_leads()

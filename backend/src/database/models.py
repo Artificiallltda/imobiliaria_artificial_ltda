@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import Boolean, Column, DateTime, String, Integer, Numeric, Enum as SQLEnum
+from sqlalchemy import Boolean, Column, DateTime, String, Integer, Numeric, Enum as SQLEnum, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 
 from .db import Base
@@ -13,6 +13,14 @@ class PropertyStatus(str, Enum):
     AVAILABLE = "AVAILABLE"
     SOLD = "SOLD"
     RESERVED = "RESERVED"
+
+
+class LeadStatus(str, Enum):
+    """Enum para status dos leads"""
+    NEW = "NEW"
+    QUALIFYING = "QUALIFYING"
+    QUALIFIED = "QUALIFIED"
+    LOST = "LOST"
 
 
 class Properties(Base):
@@ -39,6 +47,41 @@ class Properties(Base):
     # Controle de tempo
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class Leads(Base):
+    """Modelo para dados dos leads"""
+    __tablename__ = "leads"
+
+    # Campos principais
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String(255), nullable=False)
+    email = Column(String(255), nullable=False)
+    phone = Column(String(20), nullable=True)
+    status = Column(
+        SQLEnum(LeadStatus, name="lead_status"),
+        nullable=False,
+        default=LeadStatus.NEW
+    )
+    source = Column(String(100), nullable=True)
+    property_id = Column(UUID(as_uuid=True), ForeignKey("properties.id"), nullable=True)
+    
+    # Controle de tempo
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    qualified_at = Column(DateTime, nullable=True)
+    lost_at = Column(DateTime, nullable=True)
+
+
+class LeadMessages(Base):
+    """Modelo para mensagens dos leads"""
+    __tablename__ = "lead_messages"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    lead_id = Column(UUID(as_uuid=True), ForeignKey("leads.id"), nullable=False)
+    sender = Column(String(50), nullable=False)  # USER, AGENT
+    message = Column(String, nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
 
 class Users(Base):
