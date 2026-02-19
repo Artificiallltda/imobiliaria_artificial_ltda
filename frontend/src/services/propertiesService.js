@@ -24,12 +24,12 @@ function getAuthHeaders(options = {}) {
     'Content-Type': 'application/json',
     ...options.headers
   };
-  
+
   const token = getAuthToken();
   if (token) {
     headers.Authorization = token;
   }
-  
+
   return headers;
 }
 
@@ -41,15 +41,32 @@ function getAuthHeaders(options = {}) {
  */
 function buildUrlWithParams(baseUrl, params = {}) {
   const url = new URL(baseUrl);
-  
+
   // Adiciona apenas parâmetros com valor não nulo/não vazio
   Object.entries(params).forEach(([key, value]) => {
     if (value !== null && value !== undefined && value !== '') {
       url.searchParams.append(key, value);
     }
   });
-  
+
   return url.toString();
+}
+
+/**
+ * Helper para criar um erro com status HTTP preservado
+ */
+function createHttpError(message, statusCode) {
+  const err = new Error(message);
+  err.status = statusCode; // <- importante para o frontend tratar 404 etc.
+  return err;
+}
+
+/**
+ * Helper para extrair mensagem de erro do backend
+ */
+async function readErrorMessage(response) {
+  const data = await response.json().catch(() => ({}));
+  return data?.detail || `Erro ${response.status}: ${response.statusText}`;
 }
 
 /**
@@ -66,27 +83,25 @@ export async function getProperties(filters = {}) {
   try {
     // Constrói URL com filtros
     const url = buildUrlWithParams(`${API_BASE_URL}/properties/`, filters);
-    
+
     const response = await fetch(url);
-    
+
     // Verifica se a resposta foi bem sucedida
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.detail || 
-        `Erro ${response.status}: ${response.statusText}`
-      );
+      const message = await readErrorMessage(response);
+      throw createHttpError(message, response.status);
     }
-    
-    const data = await response.json();
-    
-    return data;
-    
+
+    return await response.json();
+
   } catch (error) {
-    // Propaga erro para tratamento no componente
-    throw new Error(
-      error.message || 
-      'Não foi possível carregar os imóveis. Tente novamente mais tarde.'
+    // Se já tiver status, mantém. Senão, cria genérico.
+    if (error?.status) throw error;
+
+    throw createHttpError(
+      error?.message ||
+      'Não foi possível carregar os imóveis. Tente novamente mais tarde.',
+      0
     );
   }
 }
@@ -101,21 +116,21 @@ export async function getPropertyById(id) {
     const response = await fetch(`${API_BASE_URL}/properties/${id}`, {
       headers: getAuthHeaders()
     });
-    
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.detail || 
-        `Erro ${response.status}: ${response.statusText}`
-      );
+      const message = await readErrorMessage(response);
+      throw createHttpError(message, response.status);
     }
-    
+
     return await response.json();
-    
+
   } catch (error) {
-    throw new Error(
-      error.message || 
-      'Não foi possível carregar o imóvel. Tente novamente mais tarde.'
+    if (error?.status) throw error;
+
+    throw createHttpError(
+      error?.message ||
+      'Não foi possível carregar o imóvel. Tente novamente mais tarde.',
+      0
     );
   }
 }
@@ -132,21 +147,21 @@ export async function createProperty(propertyData) {
       headers: getAuthHeaders(),
       body: JSON.stringify(propertyData)
     });
-    
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.detail || 
-        `Erro ${response.status}: ${response.statusText}`
-      );
+      const message = await readErrorMessage(response);
+      throw createHttpError(message, response.status);
     }
-    
+
     return await response.json();
-    
+
   } catch (error) {
-    throw new Error(
-      error.message || 
-      'Não foi possível criar o imóvel. Tente novamente mais tarde.'
+    if (error?.status) throw error;
+
+    throw createHttpError(
+      error?.message ||
+      'Não foi possível criar o imóvel. Tente novamente mais tarde.',
+      0
     );
   }
 }
@@ -164,21 +179,21 @@ export async function updateProperty(id, propertyData) {
       headers: getAuthHeaders(),
       body: JSON.stringify(propertyData)
     });
-    
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.detail || 
-        `Erro ${response.status}: ${response.statusText}`
-      );
+      const message = await readErrorMessage(response);
+      throw createHttpError(message, response.status);
     }
-    
+
     return await response.json();
-    
+
   } catch (error) {
-    throw new Error(
-      error.message || 
-      'Não foi possível atualizar o imóvel. Tente novamente mais tarde.'
+    if (error?.status) throw error;
+
+    throw createHttpError(
+      error?.message ||
+      'Não foi possível atualizar o imóvel. Tente novamente mais tarde.',
+      0
     );
   }
 }
@@ -194,22 +209,22 @@ export async function deleteProperty(id) {
       method: 'DELETE',
       headers: getAuthHeaders()
     });
-    
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.detail || 
-        `Erro ${response.status}: ${response.statusText}`
-      );
+      const message = await readErrorMessage(response);
+      throw createHttpError(message, response.status);
     }
-    
+
     // DELETE retorna 204 No Content
     return;
-    
+
   } catch (error) {
-    throw new Error(
-      error.message || 
-      'Não foi possível remover o imóvel. Tente novamente mais tarde.'
+    if (error?.status) throw error;
+
+    throw createHttpError(
+      error?.message ||
+      'Não foi possível remover o imóvel. Tente novamente mais tarde.',
+      0
     );
   }
 }
@@ -237,7 +252,7 @@ export function translateStatus(status) {
     'SOLD': 'Vendido',
     'RESERVED': 'Reservado'
   };
-  
+
   return statusMap[status] || status;
 }
 
@@ -248,27 +263,27 @@ export function translateStatus(status) {
  */
 export function validateFilters(filters) {
   const validated = {};
-  
+
   // Valida e limpa cada filtro
   if (filters.city?.trim()) {
     validated.city = filters.city.trim();
   }
-  
+
   if (filters.minPrice && !isNaN(filters.minPrice)) {
     validated.minPrice = parseFloat(filters.minPrice);
   }
-  
+
   if (filters.maxPrice && !isNaN(filters.maxPrice)) {
     validated.maxPrice = parseFloat(filters.maxPrice);
   }
-  
+
   if (filters.bedrooms && !isNaN(filters.bedrooms)) {
     validated.bedrooms = parseInt(filters.bedrooms);
   }
-  
+
   if (filters.status?.trim()) {
     validated.status = filters.status.trim().toUpperCase();
   }
-  
+
   return validated;
 }

@@ -2,8 +2,9 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import Boolean, Column, DateTime, String, Integer, Numeric, Enum as SQLEnum
+from sqlalchemy import Boolean, Column, DateTime, String, Integer, Numeric, Enum as SQLEnum, Text, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 
 from .db import Base
 
@@ -28,17 +29,48 @@ class Properties(Base):
     bedrooms = Column(Integer, nullable=False)
     bathrooms = Column(Integer, nullable=False)
     area = Column(Numeric(8, 2), nullable=False)  # área em m²
-    
+
+    # Características (MVP)
+    parking_spaces = Column(Integer, nullable=False, default=0)
+    has_pool = Column(Boolean, nullable=False, default=False)
+    has_garden = Column(Boolean, nullable=False, default=False)
+    furnished = Column(Boolean, nullable=False, default=False)
+
     # Status do imóvel
     status = Column(
-        SQLEnum(PropertyStatus, name="property_status"), 
-        nullable=False, 
+        SQLEnum(PropertyStatus, name="property_status"),
+        nullable=False,
         default=PropertyStatus.AVAILABLE
     )
-    
+
     # Controle de tempo
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relacionamentos
+    images = relationship(
+        "PropertyImages",
+        back_populates="property",
+        cascade="all, delete-orphan"
+    )
+
+
+class PropertyImages(Base):
+    """Imagens do imóvel (um imóvel pode ter várias imagens)"""
+    __tablename__ = "property_images"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    property_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("properties.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    image_url = Column(Text, nullable=False)
+
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    property = relationship("Properties", back_populates="images")
 
 
 class Users(Base):
