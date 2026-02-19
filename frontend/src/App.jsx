@@ -132,10 +132,6 @@ function AppLayout({ onLogout }) {
               <MenuIcon />
             </button>
 
-            <button className="icon-btn" type="button" aria-label="Configurações">
-              <SettingsIcon />
-            </button>
-
             {/* Idioma */}
             <button
               className="icon-btn"
