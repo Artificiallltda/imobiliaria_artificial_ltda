@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from src.database.db import SessionLocal
 from src.database.models import Users
+from src.routes.conversations import router as conversations_router
 from src.routes.properties import router as properties_router
 from src.routes.properties_crud import router as properties_crud_router
 
@@ -24,9 +25,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Incluir rotas de imóveis
+# Incluir rotas
 app.include_router(properties_router)
 app.include_router(properties_crud_router)
+app.include_router(conversations_router)
 
 
 class LoginPayload(BaseModel):
@@ -86,12 +88,14 @@ def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token inválido.",
         )
+
     user_id = payload.get("sub")
     if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token inválido.",
         )
+
     user = db.query(Users).filter(Users.id == user_id).first()
     if not user or not user.is_active:
         raise HTTPException(
@@ -114,6 +118,7 @@ def login(payload: LoginPayload, db: Session = Depends(get_db)):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credenciais inválidas.",
         )
+
     token = create_access_token(user)
     return LoginResponse(
         access_token=token,
