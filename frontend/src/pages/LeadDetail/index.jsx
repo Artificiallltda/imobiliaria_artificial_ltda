@@ -1,16 +1,26 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Button, Card, Modal, Select, StatusTag, useToast } from '../../components/ui/index.js'
 import Conversation from '../../components/Leads/Conversation/index.jsx'
-import { getLeadDetailMockById } from '../../mocks/leadDetailMock.jsx'
+import { getLeadById, updateLeadStatus } from '../../services/leadsService.js'
 import { useI18n } from '../../i18n/index.jsx'
 import styles from './styles.module.css'
 
 function formatDate(iso, locale) {
   try {
-    return new Date(iso).toLocaleDateString(locale)
-  } catch {
-    return ''
+    if (!iso) return 'Data não disponível'
+    const date = new Date(iso)
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      return 'Data inválida'
+    }
+    return date.toLocaleDateString(locale || 'pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    })
+  } catch (error) {
+    return 'Erro ao formatar data'
   }
 }
 
@@ -19,40 +29,67 @@ export default function LeadDetail() {
   const { toast } = useToast()
   const { t, locale } = useI18n()
 
-  const detail = useMemo(() => getLeadDetailMockById(id), [id])
-
-  const [status, setStatus] = useState(detail.lead.status)
+  const [lead, setLead] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [isConvertModalOpen, setIsConvertModalOpen] = useState(false)
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false)
   const [isChatModalOpen, setIsChatModalOpen] = useState(false)
 
+  useEffect(() => {
+    const fetchLead = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const data = await getLeadById(id)
+        setLead(data)
+      } catch (err) {
+        setError(err.message)
+        toast({ type: 'error', message: 'Erro ao carregar dados do lead' })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (id) {
+      fetchLead()
+    } else {
+      setError('ID do lead não fornecido')
+      setLoading(false)
+    }
+  }, [id, toast])
+
   const statusOptions = useMemo(
     () => [
-      { value: 'pending', label: t('leadDetail.statusOptions.pending') },
-      { value: 'active', label: t('leadDetail.statusOptions.active') },
-      { value: 'inactive', label: t('leadDetail.statusOptions.inactive') },
-      { value: 'converted', label: t('leadDetail.statusOptions.converted') },
-      { value: 'archived', label: t('leadDetail.statusOptions.archived') },
+      { value: 'NEW', label: 'Novo' },
+      { value: 'QUALIFYING', label: 'Qualificando' },
+      { value: 'QUALIFIED', label: 'Qualificado' },
+      { value: 'LOST', label: 'Perdido' },
     ],
-    [t],
+    [],
   )
 
   const statusTag = useMemo(() => {
-    if (status === 'active') return 'active'
-    if (status === 'pending') return 'pending'
-    if (status === 'error') return 'error'
+    if (lead?.status === 'NEW') return 'pending'
+    if (lead?.status === 'QUALIFYING') return 'active'
+    if (lead?.status === 'QUALIFIED') return 'success'
+    if (lead?.status === 'LOST') return 'error'
     return 'inactive'
-  }, [status])
+  }, [lead?.status])
 
   const statusLabel = useMemo(() => {
-    const found = statusOptions.find((opt) => opt.value === status)
-    return found?.label ?? String(status ?? '')
-  }, [status, statusOptions])
+    const found = statusOptions.find((opt) => opt.value === lead?.status)
+    return found?.label ?? String(lead?.status ?? '')
+  }, [lead?.status, statusOptions])
 
-  const handleStatusChange = (next) => {
-    setStatus(next)
-    // TODO - Integrar ações com backend
-    toast({ type: 'success', message: t('leadDetail.toast.statusUpdated') })
+  const handleStatusChange = async (next) => {
+    try {
+      await updateLeadStatus(id, next)
+      setLead(prev => prev ? { ...prev, status: next } : null)
+      toast({ type: 'success', message: 'Status atualizado com sucesso' })
+    } catch (err) {
+      toast({ type: 'error', message: 'Erro ao atualizar status' })
+    }
   }
 
   const handleSendMessage = () => {
@@ -63,17 +100,63 @@ export default function LeadDetail() {
 
   const handleConvert = () => {
     setIsConvertModalOpen(false)
-    setStatus('converted')
-    // TODO - Integrar ações com backend
-    toast({ type: 'success', message: t('leadDetail.toast.leadConverted') })
+    // Update the lead status to QUALIFIED when converting
+    updateLeadStatus(lead.id, 'QUALIFIED')
+      .then(updatedLead => {
+        setLead(updatedLead)
+        toast({ type: 'success', message: t('leadDetail.toast.leadConverted') })
+      })
+      .catch(() => {
+        toast({ type: 'error', message: 'Erro ao converter lead' })
+      })
   }
 
   const handleArchive = () => {
     setIsArchiveModalOpen(false)
-    setStatus('archived')
-    // TODO - Integrar ações com backend
-    toast({ type: 'success', message: t('leadDetail.toast.leadArchived') })
+    // Update the lead status to LOST when archiving
+    updateLeadStatus(lead.id, 'LOST')
+      .then(updatedLead => {
+        setLead(updatedLead)
+        toast({ type: 'success', message: t('leadDetail.toast.leadArchived') })
+      })
+      .catch(() => {
+        toast({ type: 'error', message: 'Erro ao arquivar lead' })
+      })
   }
+
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.loading}>Carregando...</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.error}>Erro: {error}</div>
+      </div>
+    )
+  }
+
+  if (!lead) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.error}>
+          <p>Lead não encontrado ou não foi possível carregar os dados.</p>
+          <p>ID: {id}</p>
+          <p>Erro: {error || 'Nenhum erro específico'}</p>
+          <p>
+            <Link to="/leads" className={styles.backLink}>
+              Voltar para a lista de leads
+            </Link>
+          </p>
+        </div>
+      </div>
+    )
+  }
+
 
   return (
     <div className={styles.page}>
@@ -90,7 +173,9 @@ export default function LeadDetail() {
             <StatusTag status={statusTag}>{statusLabel}</StatusTag>
           </div>
 
-          <div className={styles.subtitle}>{t('leadDetail.id', { id: detail.lead.id })}</div>
+          <div className={styles.subtitle}>
+            {t('leadDetail.id', { id: lead.id })}
+          </div>
         </div>
       </div>
 
@@ -100,9 +185,7 @@ export default function LeadDetail() {
             <div>
               <div className={styles.cardTitle}>{t('leadDetail.summary.title')}</div>
               <div className={styles.cardSub}>
-                {t('leadDetail.summary.createdAt', {
-                  date: formatDate(detail.lead.createdAt, locale),
-                })}
+                ID: {lead.id}
               </div>
             </div>
           </div>
@@ -110,17 +193,17 @@ export default function LeadDetail() {
           <div className={styles.summaryGrid}>
             <div className={styles.field}>
               <div className={styles.label}>{t('leadDetail.summary.name')}</div>
-              <div className={styles.value}>{detail.lead.name}</div>
+              <div className={styles.value}>{lead.name}</div>
             </div>
 
             <div className={styles.field}>
               <div className={styles.label}>{t('leadDetail.summary.email')}</div>
-              <div className={styles.value}>{detail.lead.email}</div>
+              <div className={styles.value}>{lead.email}</div>
             </div>
 
             <div className={styles.field}>
               <div className={styles.label}>{t('leadDetail.summary.phone')}</div>
-              <div className={styles.value}>{detail.lead.phone}</div>
+              <div className={styles.value}>{lead.phone || '-'}</div>
             </div>
 
             <div className={styles.field}>
@@ -129,6 +212,13 @@ export default function LeadDetail() {
                 <StatusTag status={statusTag}>{statusLabel}</StatusTag>
               </div>
             </div>
+
+            {lead.property && (
+              <div className={styles.field}>
+                <div className={styles.label}>Imóvel</div>
+                <div className={styles.value}>{lead.property.title}</div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -216,7 +306,7 @@ export default function LeadDetail() {
         }
       >
         <div className={styles.modalConversationWrap}>
-          <Conversation messages={detail.messages} />
+          <Conversation messages={lead.messages} />
         </div>
       </Modal>
     </div>
