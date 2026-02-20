@@ -2,7 +2,6 @@
 
 export const MENU_MAIN = [
   { label: "Dashboard", icon: "▢", to: "/dashboard" },
-  { label: "Lista de Favoritos", icon: "★", to: "/favoritos" },
   { label: "Mensagens", icon: "✉", to: "/mensagens" },
 ];
 

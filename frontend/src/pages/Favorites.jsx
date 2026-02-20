@@ -1,23 +1,52 @@
 // src/pages/Favorites.jsx
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { favoritesMock } from '../mocks/favoritesMock.jsx'
 import { Button, Card, Modal, StatusTag, useToast } from '../components/ui/index.js'
 import { useI18n } from '../i18n/index.jsx'
-
-// TODO - Substituir dados mockados futuramente pela API
-// TODO - Persistir favoritos no backend
-// TODO - Integrar atalho de contato com chat
+import { getFavorites, removeFavorite } from '../services/favoritesService.js'
 
 export default function Favorites() {
   const { toast } = useToast()
   const navigate = useNavigate()
   const { t } = useI18n()
 
-  const [favorites, setFavorites] = useState(favoritesMock)
+  const [favorites, setFavorites] = useState([])
+  const [loading, setLoading] = useState(true)
 
   const [contactOpen, setContactOpen] = useState(false)
   const [selected, setSelected] = useState(null)
+
+  // Buscar favoritos da API
+  const fetchFavorites = async () => {
+    try {
+      setLoading(true)
+      const data = await getFavorites()
+      setFavorites(data)
+    } catch (error) {
+      if (error.status === 401) {
+        toast({ type: 'error', message: 'Sessão expirada. Faça login novamente.' })
+        navigate('/login')
+      } else {
+        toast({ type: 'error', message: 'Erro ao carregar favoritos.' })
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchFavorites()
+  }, [navigate, toast])
+
+  // Recarregar quando a página ganha foco (volta de outra página)
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchFavorites()
+    }
+
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [])
 
   const total = useMemo(() => favorites.length, [favorites])
 
@@ -26,13 +55,56 @@ export default function Favorites() {
     setContactOpen(true)
   }
 
-  const handleRemove = (id) => {
-    setFavorites((prev) => prev.filter((p) => p.id !== id))
-    toast({ type: 'success', message: t('favorites.toast.removed') })
+  const handleRemove = async (propertyId) => {
+    try {
+      await removeFavorite(propertyId)
+      setFavorites((prev) => prev.filter((f) => f.property_id !== propertyId))
+      toast({ type: 'success', message: t('favorites.toast.removed') })
+    } catch (error) {
+      toast({ type: 'error', message: 'Erro ao remover favorito.' })
+    }
   }
 
   const goToProperties = () => {
     navigate('/imoveis')
+  }
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(price)
+  }
+
+  const getStatusLabel = (status) => {
+    const statusMap = {
+      'AVAILABLE': 'Ativo',
+      'SOLD': 'Vendido',
+      'RESERVED': 'Reservado'
+    }
+    return statusMap[status] || status
+  }
+
+  const getStatusTone = (status) => {
+    switch (status) {
+      case 'AVAILABLE': return 'active'
+      case 'RESERVED': return 'pending'
+      case 'SOLD': return 'inactive'
+      default: return 'inactive'
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="page">
+        <div className="favorites-header">
+          <h2>{t('favorites.title')}</h2>
+        </div>
+        <Card className="favorites-empty" variant="flat">
+          <p className="muted">Carregando favoritos...</p>
+        </Card>
+      </div>
+    )
   }
 
   return (
@@ -57,32 +129,33 @@ export default function Favorites() {
         </Card>
       ) : (
         <div className="favorites-grid">
-          {favorites.map((p) => (
-            <Card key={p.id} className="fav-card" variant="flat">
+          {favorites.map((fav) => (
+            <Card key={fav.id} className="fav-card" variant="flat">
               <div className="fav-cover">
                 <div className="fav-cover-placeholder" />
-                <StatusPill status={p.status} />
+                <StatusPill status={fav.property.status} getStatusLabel={getStatusLabel} getStatusTone={getStatusTone} t={t} />
               </div>
 
               <div className="fav-content">
                 <div className="fav-top">
                   <div>
-                    {/* título e infos do imóvel vêm do mock/API, não traduz */}
-                    <div className="fav-title">{p.title}</div>
-                    <div className="fav-sub">{p.location}</div>
+                    <div className="fav-title">{fav.property.title}</div>
+                    <div className="fav-sub">{fav.property.city}</div>
                   </div>
-
-                  <div className="fav-id">{p.id}</div>
                 </div>
 
-                <div className="fav-price">{p.price}</div>
+                <div className="fav-price">{formatPrice(fav.property.price)}</div>
 
                 <div className="fav-actions">
-                  <Button variant="outline" onClick={() => handleRemove(p.id)}>
+                  <Button variant="outline" onClick={() => handleRemove(fav.property_id)}>
                     {t('favorites.actions.remove')}
                   </Button>
 
-                  <Button onClick={() => handleContact(p)}>{t('favorites.actions.contactAgent')}</Button>
+                  <Button onClick={() => handleContact(fav.property)}>{t('favorites.actions.contactAgent')}</Button>
+
+                  <Button variant="secondary" onClick={() => navigate(`/imoveis/${fav.property_id}`)}>
+                    Ver Detalhes
+                  </Button>
                 </div>
               </div>
             </Card>
@@ -121,8 +194,8 @@ export default function Favorites() {
 
           <div className="favorites-modal-card">
             <div className="fav-title">{selected?.title}</div>
-            <div className="fav-sub">{selected?.location}</div>
-            <div className="fav-price">{selected?.price}</div>
+            <div className="fav-sub">{selected?.city}</div>
+            <div className="fav-price">{selected?.price ? formatPrice(selected.price) : ''}</div>
           </div>
 
           <p className="muted" style={{ marginTop: 10 }}>
@@ -134,18 +207,9 @@ export default function Favorites() {
   )
 }
 
-function StatusPill({ status }) {
-  const { t } = useI18n()
-
-  // mock mantém PT: "Ativo" | "Reservado" | "Inativo"
-  const dsStatus = status === 'Ativo' ? 'active' : status === 'Reservado' ? 'pending' : 'inactive'
-
-  const label =
-    status === 'Ativo'
-      ? t('favorites.status.active')
-      : status === 'Reservado'
-        ? t('favorites.status.reserved')
-        : t('favorites.status.inactive')
+function StatusPill({ status, getStatusLabel, getStatusTone, t }) {
+  const dsStatus = getStatusTone(status)
+  const label = getStatusLabel(status)
 
   return (
     <StatusTag status={dsStatus} className="fav-badge">

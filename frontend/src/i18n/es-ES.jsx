@@ -171,7 +171,7 @@ export default {
 },
   favorites: {
   title: 'Favoritos',
-  subtitle: 'Propiedades guardadas para retomar después (mock).',
+  subtitle: 'Propiedades guardadas para retomar después.',
 
   resultsPill: '{count} favorito(s)',
 
@@ -187,8 +187,8 @@ export default {
   },
 
   toast: {
-    removed: 'Eliminado de favoritos (mock).',
-    contactShortcut: 'Acceso directo de contacto activado (mock).',
+    removed: 'Eliminado de favoritos.',
+    contactShortcut: 'Acceso directo de contacto activado.',
   },
 
   modal: {

@@ -879,8 +879,8 @@ html[data-theme] .status.RESERVED {
 }
 
 .favorites-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 14px;
 }
 
@@ -961,7 +961,7 @@ html[data-theme] .status.RESERVED {
 
 .fav-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 10px;
   margin-top: 12px;
 }
@@ -1257,7 +1257,7 @@ html[data-theme] .status.RESERVED {
 }
 
 @media (max-width: 1100px) {
-  .favorites-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .favorites-grid { gap: 12px; }
 }
 
 @media (max-width: 1024px) {
@@ -1388,7 +1388,7 @@ html[data-theme] .status.RESERVED {
   }
 
   /* Favorites */
-  .favorites-grid { grid-template-columns: 1fr; }
+  .favorites-grid { gap: 10px; }
   .fav-actions { grid-template-columns: 1fr; }
 }
 
