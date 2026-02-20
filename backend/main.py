@@ -11,10 +11,12 @@ from sqlalchemy.orm import Session
 
 from src.database.db import SessionLocal
 from src.database.models import Users
+from src.auth import get_current_user, get_db, create_access_token
 from src.routes.conversations import router as conversations_router
 from src.routes.properties import router as properties_router
 from src.routes.properties_crud import router as properties_crud_router
 from src.routes.leads.leads import router as leads_router
+from src.routes.favoritos import router as favorites_router
 
 app = FastAPI(title="API Imobiliária", version="1.0.0")
 
@@ -33,6 +35,9 @@ app.include_router(conversations_router)
 
 # Incluir rotas de leads
 app.include_router(leads_router)
+
+# Incluir rotas de favoritos
+app.include_router(favorites_router)
 
 
 class LoginPayload(BaseModel):
@@ -54,59 +59,6 @@ class UserResponse(BaseModel):
     role: str
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "CHANGE_ME")
-JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
-JWT_EXPIRES_MINUTES = int(os.getenv("JWT_EXPIRES_MINUTES", "60"))
-
-security = HTTPBearer()
-
-
-def create_access_token(user: Users) -> str:
-    expire = datetime.utcnow() + timedelta(minutes=JWT_EXPIRES_MINUTES)
-    payload = {
-        "sub": str(user.id),
-        "email": user.email,
-        "role": user.role,
-        "exp": expire,
-    }
-    return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
-
-
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db),
-):
-    token = credentials.credentials
-    try:
-        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
-    except jwt.PyJWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido.",
-        )
-
-    user_id = payload.get("sub")
-    if not user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido.",
-        )
-
-    user = db.query(Users).filter(Users.id == user_id).first()
-    if not user or not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Usuário inválido.",
-        )
-    return user
 
 
 @app.post("/auth/login", response_model=LoginResponse)

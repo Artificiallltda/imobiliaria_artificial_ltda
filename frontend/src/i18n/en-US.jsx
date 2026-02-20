@@ -171,7 +171,7 @@ export default {
 },
   favorites: {
   title: 'Favorites',
-  subtitle: 'Saved properties to revisit later (mock).',
+  subtitle: 'Saved properties to revisit later.',
 
   resultsPill: '{count} favorite(s)',
 
@@ -187,8 +187,8 @@ export default {
   },
 
   toast: {
-    removed: 'Removed from favorites (mock).',
-    contactShortcut: 'Contact shortcut triggered (mock).',
+    removed: 'Removed from favorites.',
+    contactShortcut: 'Contact shortcut triggered.',
   },
 
   modal: {

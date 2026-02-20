@@ -1,20 +1,24 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Button, StatusTag, Modal } from '../../components/ui/index.js';
+import { Card, Button, StatusTag, Modal, useToast } from '../../components/ui/index.js';
 import Gallery from '../../components/Properties/Gallery/index.jsx';
 import styles from './styles.module.css';
 
 import { getPropertyById } from '../../services/propertiesService';
+import { addFavorite, removeFavorite, checkFavorite } from '../../services/favoritesService';
 import { formatPriceBRL, getStatusLabel, getStatusTone } from '../../utils/propertyUtils';
 
 const PropertyDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null); // "NOT_FOUND" | "GENERIC" | null
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [isLoadingFavorite, setIsLoadingFavorite] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -27,6 +31,14 @@ const PropertyDetail = () => {
         const data = await getPropertyById(id);
         if (!alive) return;
         setProperty(data);
+
+        // Verificar se está nos favoritos
+        try {
+          const favorited = await checkFavorite(id);
+          if (alive) setIsFavorited(favorited);
+        } catch (err) {
+          // Silenciar erro de check - não é crítico
+        }
       } catch (err) {
         if (!alive) return;
 
@@ -64,6 +76,48 @@ const PropertyDetail = () => {
     if (whatsapp) {
       const message = encodeURIComponent(`Olá! Tenho interesse no imóvel: ${property.title}`);
       window.open(`https://wa.me/${String(whatsapp).replace(/\D/g, '')}?text=${message}`, '_blank');
+    }
+  };
+
+  const handleToggleFavorite = async () => {
+    if (isLoadingFavorite) return;
+
+    setIsLoadingFavorite(true);
+    try {
+      if (isFavorited) {
+        await removeFavorite(id);
+        setIsFavorited(false);
+        // Toast de sucesso ao remover
+        toast({
+          type: 'success',
+          message: 'Imóvel removido dos favoritos',
+        });
+      } else {
+        await addFavorite(id);
+        setIsFavorited(true);
+        // Toast de sucesso ao adicionar
+        toast({
+          type: 'success',
+          message: 'Imóvel adicionado aos favoritos',
+        });
+      }
+    } catch (err) {
+      // Erro 409 = já favoritado, considerar como sucesso
+      if (err.status === 409) {
+        setIsFavorited(true);
+        toast({
+          type: 'info',
+          message: 'Imóvel já está nos favoritos',
+        });
+      } else {
+        // Toast de erro genérico
+        toast({
+          type: 'error',
+          message: 'Erro ao atualizar favoritos. Tente novamente.',
+        });
+      }
+    } finally {
+      setIsLoadingFavorite(false);
     }
   };
 
@@ -265,6 +319,16 @@ const PropertyDetail = () => {
                   title={!property?.contact?.whatsapp ? "WhatsApp ainda não disponível via API" : ""}
                 >
                   📱 WhatsApp
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className={styles.favoriteButton}
+                  onClick={handleToggleFavorite}
+                  disabled={isLoadingFavorite}
+                  title={isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+                >
+                  {isFavorited ? '❤️' : '🤍'} {isFavorited ? 'Favoritado' : 'Favoritar'}
                 </Button>
               </div>
 

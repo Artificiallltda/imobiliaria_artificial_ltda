@@ -12,6 +12,7 @@ from sqlalchemy import (
     Enum as SQLEnum,
     Text,
     ForeignKey,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -184,3 +185,18 @@ class Messages(Base):
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
     conversation = relationship("Conversations", back_populates="messages")
+
+
+class Favorites(Base):
+    """Modelo para favoritos do usuário"""
+    __tablename__ = "favorites"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("Users.id", ondelete="CASCADE"), nullable=False)
+    property_id = Column(UUID(as_uuid=True), ForeignKey("properties.id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    __table_args__ = (
+        # Constraint única: um usuário não pode favoritar o mesmo imóvel duas vezes
+        UniqueConstraint('user_id', 'property_id', name='uq_user_property_favorite'),
+    )
