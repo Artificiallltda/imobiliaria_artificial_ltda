@@ -2,7 +2,17 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import Boolean, Column, DateTime, String, Integer, Numeric, Enum as SQLEnum, Text, ForeignKey
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    String,
+    Integer,
+    Numeric,
+    Enum as SQLEnum,
+    Text,
+    ForeignKey,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -130,3 +140,47 @@ class Users(Base):
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+# =========================
+#   MENSAGENS (MVP)
+# =========================
+
+class Conversations(Base):
+    """Conversas (MVP sem WebSocket)"""
+    __tablename__ = "conversations"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+
+    # opcional no MVP
+    lead_id = Column(UUID(as_uuid=True), nullable=True)
+
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    messages = relationship(
+        "Messages",
+        back_populates="conversation",
+        cascade="all, delete-orphan"
+    )
+
+
+class Messages(Base):
+    """Mensagens dentro de uma conversa"""
+    __tablename__ = "messages"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+
+    conversation_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("conversations.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+
+    sender_type = Column(String(20), nullable=False)  # validar no backend: corretor | cliente | sistema
+    content = Column(Text, nullable=False)
+
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    conversation = relationship("Conversations", back_populates="messages")

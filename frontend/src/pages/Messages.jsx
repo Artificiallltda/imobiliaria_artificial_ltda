@@ -192,9 +192,7 @@ export default function Messages() {
               <Button onClick={handleSend}>{t('messages.chat.send')}</Button>
             </div>
 
-            <div className="chat-footnote">
-              <span className="muted">{t('messages.chat.footnote')}</span>
-            </div>
+            
           </div>
         )}
       </section>
