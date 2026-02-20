@@ -26,24 +26,40 @@ export default function Leads() {
   const [leads, setLeads] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 10 })
+
+  // Estados para filtros
+  const [statusFilter, setStatusFilter] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+
+  const fetchLeads = async (filters = {}) => {
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await getLeads(filters)
+      setLeads(response.data || [])
+      setPagination({
+        total: response.total || 0,
+        page: response.page || 1,
+        limit: response.limit || 10
+      })
+    } catch (err) {
+      setError(err.message)
+      console.error('Erro ao carregar leads:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const fetchLeads = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-        const data = await getLeads()
-        setLeads(data)
-      } catch (err) {
-        setError(err.message)
-        console.error('Erro ao carregar leads:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchLeads()
-  }, [])
+    fetchLeads({
+      status: statusFilter || undefined,
+      search: searchTerm || undefined,
+      page: currentPage,
+      limit: 10
+    })
+  }, [statusFilter, searchTerm, currentPage])
 
   const statusLabel = (status) => {
     switch (status) {
@@ -76,6 +92,39 @@ export default function Leads() {
     }
   }
 
+  // Opções para filtro de status
+  const statusOptions = useMemo(() => [
+    { value: '', label: 'Todos os status' },
+    { value: 'NEW', label: 'Novo' },
+    { value: 'QUALIFYING', label: 'Qualificando' },
+    { value: 'QUALIFIED', label: 'Qualificado' },
+    { value: 'LOST', label: 'Perdido' }
+  ], [])
+
+  // Função para aplicar filtros
+  const applyFilters = () => {
+    setCurrentPage(1) // Reset para primeira página
+    fetchLeads({
+      status: statusFilter || undefined,
+      search: searchTerm || undefined,
+      page: 1,
+      limit: 10
+    })
+  }
+
+  // Função para limpar filtros
+  const clearFilters = () => {
+    setStatusFilter('')
+    setSearchTerm('')
+    setCurrentPage(1)
+    fetchLeads({ page: 1, limit: 10 })
+  }
+
+  // Função para mudar página
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage)
+  }
+
   if (loading) {
     return (
       <div className="page">
@@ -90,6 +139,9 @@ export default function Leads() {
       <div className="page">
         <h2>{t('leads.title')}</h2>
         <p>Erro ao carregar leads: {error}</p>
+        <Button onClick={() => fetchLeads({ page: currentPage, limit: 10 })}>
+          Tentar novamente
+        </Button>
       </div>
     )
   }
@@ -99,6 +151,64 @@ export default function Leads() {
       <h2>{t('leads.title')}</h2>
       <p className="muted">{t('leads.subtitle')}</p>
 
+      {/* Filtros */}
+      <div style={{ marginTop: 20, marginBottom: 20, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <label style={{ fontSize: 14, fontWeight: 600 }}>Buscar</label>
+          <input
+            type="text"
+            placeholder="Nome, email ou telefone..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              padding: '8px 12px',
+              border: '1px solid #ccc',
+              borderRadius: 4,
+              minWidth: 200
+            }}
+          />
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <label style={{ fontSize: 14, fontWeight: 600 }}>Status</label>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            style={{
+              padding: '8px 12px',
+              border: '1px solid #ccc',
+              borderRadius: 4,
+              minWidth: 150
+            }}
+          >
+            {statusOptions.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'end', gap: 8 }}>
+          <Button onClick={applyFilters} variant="primary">
+            Aplicar filtros
+          </Button>
+          <Button onClick={clearFilters} variant="outline">
+            Limpar
+          </Button>
+        </div>
+      </div>
+
+      {/* Contador de resultados */}
+      <div style={{ marginBottom: 12, fontSize: 14, color: '#666' }}>
+        {pagination.total > 0 ? (
+          <>Encontrados {pagination.total} lead{pagination.total !== 1 ? 's' : ''}</>
+        ) : (
+          'Nenhum lead encontrado'
+        )}
+      </div>
+
+      {/* Lista de leads */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }}>
         {leads.map((lead) => {
           const displayStatus = mapStatusToDisplay(lead.status)
@@ -128,11 +238,38 @@ export default function Leads() {
             </div>
           )
         })}
-
-        {leads.length === 0 && (
-          <p className="muted">Nenhum lead encontrado.</p>
-        )}
       </div>
+
+      {/* Paginação */}
+      {pagination.total > pagination.limit && (
+        <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center', gap: 8 }}>
+          <Button
+            variant="outline"
+            disabled={currentPage <= 1}
+            onClick={() => handlePageChange(currentPage - 1)}
+          >
+            Anterior
+          </Button>
+
+          <span style={{ padding: '8px 16px', alignSelf: 'center' }}>
+            Página {currentPage} de {Math.ceil(pagination.total / pagination.limit)}
+          </span>
+
+          <Button
+            variant="outline"
+            disabled={currentPage >= Math.ceil(pagination.total / pagination.limit)}
+            onClick={() => handlePageChange(currentPage + 1)}
+          >
+            Próxima
+          </Button>
+        </div>
+      )}
+
+      {leads.length === 0 && !loading && (
+        <p className="muted" style={{ textAlign: 'center', marginTop: 40 }}>
+          Nenhum lead encontrado com os filtros aplicados.
+        </p>
+      )}
     </div>
   )
 }

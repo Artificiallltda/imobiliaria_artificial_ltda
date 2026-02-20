@@ -78,23 +78,55 @@ export async function getLeadById(id) {
 }
 
 /**
- * Busca a lista de todos os leads
- * @returns {Promise<Array>} Lista de leads
+ * Busca a lista de leads com filtros
+ * @param {Object} filters - Filtros opcionais
+ * @param {string} filters.status - Filtrar por status
+ * @param {string} filters.search - Buscar por nome, email ou telefone
+ * @param {string} filters.property_id - Filtrar por ID do imóvel
+ * @param {number} filters.page - Página atual (padrão: 1)
+ * @param {number} filters.limit - Itens por página (padrão: 10)
+ * @returns {Promise<Object>} Lista paginada de leads
  * @throws {Error} Se a requisição falhar
  */
-export async function getLeads() {
+export async function getLeads(filters = {}) {
   try {
-    const response = await fetch(`${API_BASE_URL}/leads`, {
+    const params = new URLSearchParams();
+
+    // Adicionar filtros aos parâmetros da URL
+    if (filters.status) params.append('status', filters.status);
+    if (filters.search) params.append('search', filters.search);
+    if (filters.property_id) params.append('property_id', filters.property_id);
+    if (filters.page) params.append('page', filters.page);
+    if (filters.limit) params.append('limit', filters.limit);
+
+    const url = `${API_BASE_URL}/leads${params.toString() ? `?${params.toString()}` : ''}`;
+
+    const response = await fetch(url, {
       method: 'GET',
       headers: getAuthHeaders()
     });
 
     if (!response.ok) {
-      throw new Error(`Erro ao buscar leads: ${response.statusText}`);
+      let errorMessage = `Erro ao buscar leads: ${response.status} ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (e) {
+        // Mantém a mensagem padrão se não conseguir parsear
+      }
+
+      if (response.status === 401) {
+        errorMessage = 'Não autorizado. Por favor, faça login novamente.';
+      } else if (response.status === 403) {
+        errorMessage = 'Você não tem permissão para acessar este recurso.';
+      } else if (response.status >= 500) {
+        errorMessage = 'Erro no servidor. Por favor, tente novamente mais tarde.';
+      }
+
+      throw new Error(errorMessage);
     }
 
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
     throw error;
   }
