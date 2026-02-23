@@ -28,6 +28,9 @@ class ConversationOut(BaseModel):
     id: UUID
     last_message: str | None = None
     last_message_at: datetime | None = None
+    is_archived: bool
+    is_read: bool
+    unread_count: int
 
 
 class MessageCreate(BaseModel):
@@ -47,9 +50,10 @@ class MessageOut(BaseModel):
 
 
 # ---------- Endpoints ----------
+
 @router.get("", response_model=list[ConversationOut])
 def list_conversations(db: Session = Depends(get_db)):
-    # subquery: última data de msg por conversa
+
     sub = (
         db.query(
             Messages.conversation_id.label("conversation_id"),
@@ -59,9 +63,12 @@ def list_conversations(db: Session = Depends(get_db)):
         .subquery()
     )
 
-    # pega conversa + conteúdo da última msg (se existir)
     q = (
-        db.query(Conversations, Messages.content, Messages.created_at)
+        db.query(
+            Conversations,
+            Messages.content,
+            Messages.created_at,
+        )
         .outerjoin(sub, sub.c.conversation_id == Conversations.id)
         .outerjoin(
             Messages,
@@ -76,6 +83,9 @@ def list_conversations(db: Session = Depends(get_db)):
             id=conv.id,
             last_message=last_content,
             last_message_at=last_at,
+            is_archived=conv.is_archived,
+            is_read=conv.is_read,
+            unread_count=conv.unread_count,
         )
         for conv, last_content, last_at in q.all()
     ]
@@ -98,6 +108,7 @@ def list_messages(conversation_id: UUID, db: Session = Depends(get_db)):
 
 @router.post("/{conversation_id}/messages", response_model=MessageOut)
 def send_message(conversation_id: UUID, payload: MessageCreate, db: Session = Depends(get_db)):
+
     conv = db.query(Conversations).filter(Conversations.id == conversation_id).first()
     if not conv:
         raise HTTPException(status_code=404, detail="Conversation not found")
@@ -112,9 +123,56 @@ def send_message(conversation_id: UUID, payload: MessageCreate, db: Session = De
     )
     db.add(msg)
 
-    # garante updated_at atualizado (sem depender só do onupdate)
+    # 🔥 LÓGICA DE CONTADOR
+    if payload.sender_type == "cliente":
+        conv.unread_count += 1
+        conv.is_read = False
+
     conv.updated_at = datetime.utcnow()
 
     db.commit()
     db.refresh(msg)
     return msg
+
+
+@router.patch("/{conversation_id}/read")
+def mark_as_read(conversation_id: UUID, db: Session = Depends(get_db)):
+
+    conv = db.query(Conversations).filter(Conversations.id == conversation_id).first()
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    conv.is_read = True
+    conv.unread_count = 0
+
+    db.commit()
+    db.refresh(conv)
+    return conv
+
+
+@router.patch("/{conversation_id}/archive")
+def archive_conversation(conversation_id: UUID, db: Session = Depends(get_db)):
+
+    conv = db.query(Conversations).filter(Conversations.id == conversation_id).first()
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    conv.is_archived = True
+
+    db.commit()
+    db.refresh(conv)
+    return conv
+
+
+@router.patch("/{conversation_id}/unarchive")
+def unarchive_conversation(conversation_id: UUID, db: Session = Depends(get_db)):
+
+    conv = db.query(Conversations).filter(Conversations.id == conversation_id).first()
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    conv.is_archived = False
+
+    db.commit()
+    db.refresh(conv)
+    return conv
