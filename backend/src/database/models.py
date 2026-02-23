@@ -20,8 +20,11 @@ from sqlalchemy.orm import relationship
 from .db import Base
 
 
+# =========================
+# ENUMS
+# =========================
+
 class PropertyStatus(str, Enum):
-    """Enum para status dos imóveis"""
     AVAILABLE = "AVAILABLE"
     SOLD = "SOLD"
     RESERVED = "RESERVED"
@@ -36,11 +39,13 @@ class LeadStatus(str, Enum):
     perdido = "perdido"
 
 
+# =========================
+# PROPERTIES
+# =========================
+
 class Properties(Base):
-    """Modelo para dados dos imóveis"""
     __tablename__ = "properties"
 
-    # Campos principais
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(String(255), nullable=False)
     description = Column(String, nullable=False)
@@ -48,26 +53,22 @@ class Properties(Base):
     city = Column(String(100), nullable=False)
     bedrooms = Column(Integer, nullable=False)
     bathrooms = Column(Integer, nullable=False)
-    area = Column(Numeric(8, 2), nullable=False)  # área em m²
+    area = Column(Numeric(8, 2), nullable=False)
 
-    # Características (MVP)
     parking_spaces = Column(Integer, nullable=False, default=0)
     has_pool = Column(Boolean, nullable=False, default=False)
     has_garden = Column(Boolean, nullable=False, default=False)
     furnished = Column(Boolean, nullable=False, default=False)
 
-    # Status do imóvel
     status = Column(
         SQLEnum(PropertyStatus, name="property_status"),
         nullable=False,
         default=PropertyStatus.AVAILABLE
     )
 
-    # Controle de tempo
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Relacionamentos
     images = relationship(
         "PropertyImages",
         back_populates="property",
@@ -76,7 +77,6 @@ class Properties(Base):
 
 
 class PropertyImages(Base):
-    """Imagens do imóvel (um imóvel pode ter várias imagens)"""
     __tablename__ = "property_images"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -87,26 +87,29 @@ class PropertyImages(Base):
         index=True
     )
     image_url = Column(Text, nullable=False)
-
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
     property = relationship("Properties", back_populates="images")
 
 
+# =========================
+# LEADS
+# =========================
+
 class Leads(Base):
-    """Modelo para dados dos leads"""
     __tablename__ = "leads"
 
-    # Campos principais
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False)
     email = Column(String(255), nullable=False)
     phone = Column(String(20), nullable=True)
+
     status = Column(
         SQLEnum(LeadStatus, name="lead_status"),
         nullable=False,
         default=LeadStatus.novo
     )
+
     source = Column(String(100), nullable=True)
     property_id = Column(UUID(as_uuid=True), ForeignKey("properties.id"), nullable=True)
     is_archived = Column(Boolean, nullable=False, default=False)
@@ -120,18 +123,20 @@ class Leads(Base):
 
 
 class LeadMessages(Base):
-    """Modelo para mensagens dos leads"""
     __tablename__ = "lead_messages"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     lead_id = Column(UUID(as_uuid=True), ForeignKey("leads.id"), nullable=False)
-    sender = Column(String(50), nullable=False)  # USER, AGENT
+    sender = Column(String(50), nullable=False)
     message = Column(String, nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
 
+# =========================
+# USERS
+# =========================
+
 class Users(Base):
-    """Modelo para dados dos usuários"""
     __tablename__ = "Users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -147,17 +152,18 @@ class Users(Base):
 
 
 # =========================
-#   MENSAGENS (MVP)
+# CONVERSATIONS (VERSÃO FINAL CORRETA)
 # =========================
 
 class Conversations(Base):
-    """Conversas (MVP sem WebSocket)"""
     __tablename__ = "conversations"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-
-    # opcional no MVP
     lead_id = Column(UUID(as_uuid=True), nullable=True)
+
+    is_archived = Column(Boolean, nullable=False, default=False)
+    is_read = Column(Boolean, nullable=False, default=False)
+    unread_count = Column(Integer, nullable=False, default=0)
 
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -170,7 +176,6 @@ class Conversations(Base):
 
 
 class Messages(Base):
-    """Mensagens dentro de uma conversa"""
     __tablename__ = "messages"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -182,7 +187,7 @@ class Messages(Base):
         index=True
     )
 
-    sender_type = Column(String(20), nullable=False)  # validar no backend: corretor | cliente | sistema
+    sender_type = Column(String(20), nullable=False)
     content = Column(Text, nullable=False)
 
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
