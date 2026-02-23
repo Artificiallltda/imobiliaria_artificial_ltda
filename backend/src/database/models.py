@@ -31,10 +31,12 @@ class PropertyStatus(str, Enum):
 
 
 class LeadStatus(str, Enum):
-    NEW = "NEW"
-    QUALIFYING = "QUALIFYING"
-    QUALIFIED = "QUALIFIED"
-    LOST = "LOST"
+    """Enum para status dos leads - MVP"""
+    novo = "novo"
+    em_atendimento = "em_atendimento"
+    proposta_enviada = "proposta_enviada"
+    fechado = "fechado"
+    perdido = "perdido"
 
 
 # =========================
@@ -105,14 +107,17 @@ class Leads(Base):
     status = Column(
         SQLEnum(LeadStatus, name="lead_status"),
         nullable=False,
-        default=LeadStatus.NEW
+        default=LeadStatus.novo
     )
 
     source = Column(String(100), nullable=True)
     property_id = Column(UUID(as_uuid=True), ForeignKey("properties.id"), nullable=True)
-
+    is_archived = Column(Boolean, nullable=False, default=False)
+    
+    # Controle de tempo
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    converted_at = Column(DateTime, nullable=True)
     qualified_at = Column(DateTime, nullable=True)
     lost_at = Column(DateTime, nullable=True)
 
