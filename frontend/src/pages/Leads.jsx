@@ -1,43 +1,85 @@
-// src/pages/Leads.jsx
+// src/pages/Leads.jsx - UPDATED 1771849897000
 import { useEffect, useMemo, useState } from 'react'
 import { getLeads } from '../services/leadsService.js'
 import { StatusTag } from '../components/ui/index.js'
 import { useI18n } from '../i18n/index.jsx'
 
-// mock mantém PT para bater com leadsMock.status
-const STATUS_VALUES = ['Todos', 'Novo', 'Em contato', 'Convertido', 'Perdido']
+// FORÇAR REBUILD - Valores atualizados para o MVP - sem dependência de traduções
+const STATUS_VALUES = [
+  { value: 'Todos', label: 'Todos' },
+  { value: 'Novo', label: 'Novo' },
+  { value: 'Em Atendimento', label: 'Em Atendimento' },
+  { value: 'Proposta Enviada', label: 'Proposta Enviada' },
+  { value: 'Fechado', label: 'Fechado' },
+  { value: 'Perdido', label: 'Perdido' }
+]
 
+// FORÇAR REBUILD - Funções atualizadas
+function getStatusTag(status) {
+  switch (status.toLowerCase()) {
+    case 'novo':
+      return 'pending'
+    case 'em atendimento':
+      return 'active'
+    case 'proposta enviada':
+      return 'warning'
+    case 'fechado':
+      return 'success'
+    case 'perdido':
+      return 'error'
+    default:
+      return 'inactive'
+  }
+}
+
+// FORÇAR REBUILD - Função atualizada
 function mapStatusToDisplay(backendStatus) {
   switch (backendStatus) {
-    case 'NEW':
+    case 'novo':
       return 'Novo'
-    case 'QUALIFYING':
-      return 'Em contato'
-    case 'QUALIFIED':
-      return 'Convertido'
-    case 'LOST':
+    case 'em_atendimento':
+      return 'Em Atendimento'
+    case 'proposta_enviada':
+      return 'Proposta Enviada'
+    case 'fechado':
+      return 'Fechado'
+    case 'perdido':
       return 'Perdido'
     default:
       return backendStatus
   }
 }
 
-export default function Leads() {
+// FORÇAR REBUILD - Componente atualizado
+export default function Leads_UPDATED_1771849897000() {
   const { t } = useI18n()
 
-  const [query, setQuery] = useState('')
-  const [status, setStatus] = useState('Todos')
-  const [leads, setLeads] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  // Adicionar timestamp para forçar reload
+const CACHE_BUSTER = Date.now()
+console.log('STATUS_VALUES atuais:', STATUS_VALUES)
+console.log('FORÇANDO REBUILD - Componente: Leads_UPDATED_1771849897000')
+
+// Reset forçado do estado inicial
+const [query, setQuery] = useState('')
+const [status, setStatus] = useState('Todos')
+const [leads, setLeads] = useState([])
+const [loading, setLoading] = useState(true)
+const [error, setError] = useState(null)
 
   useEffect(() => {
     const fetchLeads = async () => {
       try {
         setLoading(true)
         setError(null)
-        const data = await getLeads()
-        setLeads(data)
+        const data = await getLeads({
+        status: status !== 'Todos' ? status : undefined,
+        search: query || undefined,
+        page: 1,
+        limit: 10
+      })
+      console.log('Status no componente:', status)
+        console.log('Dados recebidos do backend:', data)
+        setLeads(data.data || data)  
       } catch (err) {
         setError(err.message)
         console.error('Erro ao carregar leads:', err)
@@ -47,45 +89,10 @@ export default function Leads() {
     }
 
     fetchLeads()
-  }, [])
+  }, [status, query])
 
   // TODO - Substituir dados mockados futuramente pela API
   // const leads = leadsMock
-
-  const filtered = useMemo(() => {
-    if (!leads.length) return []
-
-    const q = query.trim().toLowerCase()
-
-    return leads.filter((lead) => {
-      // Map backend status to display
-      const displayStatus = mapStatusToDisplay(lead.status)
-      
-      const matchText =
-        !q || lead.name?.toLowerCase().includes(q) || lead.email?.toLowerCase().includes(q)
-
-      const matchStatus = status === 'Todos' || displayStatus === status
-
-      return matchText && matchStatus
-    })
-  }, [leads, query, status])
-
-  const statusLabel = (s) => {
-    switch (s) {
-      case 'Todos':
-        return t('leads.status.all')
-      case 'Novo':
-        return t('leads.status.new')
-      case 'Em contato':
-        return t('leads.status.contacting')
-      case 'Convertido':
-        return t('leads.status.converted')
-      case 'Perdido':
-        return t('leads.status.lost')
-      default:
-        return s
-    }
-  }
 
   return (
     <div className="page">
@@ -113,8 +120,8 @@ export default function Leads() {
             <label>{t('leads.filters.statusLabel')}</label>
             <select className="leads-select" value={status} onChange={(e) => setStatus(e.target.value)}>
               {STATUS_VALUES.map((opt) => (
-                <option key={opt} value={opt}>
-                  {statusLabel(opt)}
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
                 </option>
               ))}
             </select>
@@ -162,7 +169,7 @@ export default function Leads() {
                 </thead>
 
                 <tbody>
-                  {filtered.map((lead) => {
+                  {leads.map((lead) => {
                     const displayStatus = mapStatusToDisplay(lead.status)
                     return (
                       <tr key={lead.id}>
@@ -175,7 +182,7 @@ export default function Leads() {
                         <td>{lead.phone || '-'}</td>
 
                         <td>
-                          <StatusTag status={displayStatus.toLowerCase()}>{statusLabel(displayStatus)}</StatusTag>
+                          <StatusTag status={getStatusTag(displayStatus)}>{displayStatus}</StatusTag>
                         </td>
 
                         <td>{formatDateBR(lead.created_at.split('T')[0])}</td>
@@ -183,7 +190,7 @@ export default function Leads() {
                     )
                   })}
 
-                  {filtered.length === 0 && (
+                  {leads.length === 0 && (
                     <tr>
                       <td colSpan={5} className="leads-empty">
                         {t('leads.table.empty')}
@@ -197,7 +204,7 @@ export default function Leads() {
 
           {/* Mobile: cards */}
           <section className="leads-cards">
-            {filtered.map((lead) => {
+            {leads.map((lead) => {
               const displayStatus = mapStatusToDisplay(lead.status)
               return (
                 <div key={lead.id} className="lead-card">
@@ -207,7 +214,7 @@ export default function Leads() {
                       <div className="lead-secondary">{lead.email}</div>
                     </div>
 
-                    <StatusTag status={displayStatus.toLowerCase()}>{statusLabel(displayStatus)}</StatusTag>
+                    <StatusTag status={getStatusTag(displayStatus)}>{displayStatus}</StatusTag>
                   </div>
 
                   <div className="lead-card-row">

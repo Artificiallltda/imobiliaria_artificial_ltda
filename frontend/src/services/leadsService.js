@@ -78,6 +78,20 @@ export async function getLeadById(id) {
 }
 
 /**
+ * Mapeia status do frontend para valores do backend
+ */
+function mapStatusToBackend(status) {
+  const statusMap = {
+    'Novo': 'novo',
+    'Em Atendimento': 'em_atendimento',
+    'Proposta Enviada': 'proposta_enviada',
+    'Fechado': 'fechado',
+    'Perdido': 'perdido'
+  }
+  return statusMap[status] || status
+}
+
+/**
  * Busca a lista de leads com filtros
  * @param {Object} filters - Filtros opcionais
  * @param {string} filters.status - Filtrar por status
@@ -90,16 +104,23 @@ export async function getLeadById(id) {
  */
 export async function getLeads(filters = {}) {
   try {
+    console.log('Filtros recebidos:', filters)
+    
     const params = new URLSearchParams();
 
     // Adicionar filtros aos parâmetros da URL
-    if (filters.status) params.append('status', filters.status);
+    if (filters.status) {
+      const mappedStatus = mapStatusToBackend(filters.status)
+      console.log('Status filtro:', filters.status, '→ mapeado para:', mappedStatus)
+      params.append('status', mappedStatus);
+    }
     if (filters.search) params.append('search', filters.search);
     if (filters.property_id) params.append('property_id', filters.property_id);
     if (filters.page) params.append('page', filters.page);
     if (filters.limit) params.append('limit', filters.limit);
 
-    const url = `${API_BASE_URL}/leads${params.toString() ? `?${params.toString()}` : ''}`;
+    const url = `${API_BASE_URL}/leads${params.toString() ? `?${params.toString()}` : ''}${params.toString() ? '&' : '?'}_t=${Date.now()}`;
+    console.log('URL final:', url)
 
     const response = await fetch(url, {
       method: 'GET',
@@ -133,24 +154,27 @@ export async function getLeads(filters = {}) {
 }
 
 /**
- * Atualiza o status de um lead
+ * Atualiza um lead (status, arquivar, converter) - MVP
  * @param {string} leadId - ID do lead
- * @param {string} status - Novo status do lead (deve ser um valor válido de LeadStatus)
+ * @param {Object} updates - Campos a serem atualizados
+ * @param {string} updates.status - Novo status do lead
+ * @param {boolean} updates.is_archived - Arquivar/desarquivar lead
+ * @param {boolean} updates.convert - Converter lead (status=fechado + converted_at)
  * @returns {Promise<Object>} Dados atualizados do lead
  * @throws {Error} Se a requisição falhar
  */
-export async function updateLeadStatus(leadId, status) {
+export async function updateLead(leadId, updates) {
   try {
-    const response = await fetch(`${API_BASE_URL}/leads/${leadId}/status`, {
+    const response = await fetch(`${API_BASE_URL}/leads/${leadId}`, {
       method: 'PATCH',
       headers: getAuthHeaders(),
-      body: JSON.stringify({ status })
+      body: JSON.stringify(updates)
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
-        errorData.detail || `Erro ao atualizar status do lead: ${response.statusText}`
+        errorData.detail || `Erro ao atualizar lead: ${response.statusText}`
       );
     }
 
@@ -158,4 +182,15 @@ export async function updateLeadStatus(leadId, status) {
   } catch (error) {
     throw error;
   }
+}
+
+/**
+ * Atualiza o status de um lead (legado - mantido para compatibilidade)
+ * @param {string} leadId - ID do lead
+ * @param {string} status - Novo status do lead
+ * @returns {Promise<Object>} Dados atualizados do lead
+ * @throws {Error} Se a requisição falhar
+ */
+export async function updateLeadStatus(leadId, status) {
+  return updateLead(leadId, { status });
 }

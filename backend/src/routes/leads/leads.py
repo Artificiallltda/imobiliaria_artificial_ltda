@@ -75,9 +75,11 @@ class LeadListPaginatedResponse(BaseModel):
     limit: int
 
 
-class UpdateLeadStatusRequest(BaseModel):
-    """Schema para requisição de atualização de status"""
-    status: str
+class UpdateLeadRequest(BaseModel):
+    """Schema para requisição de atualização de lead - MVP"""
+    status: Optional[str] = None
+    is_archived: Optional[bool] = None
+    convert: Optional[bool] = None
 
 
 def get_db():
@@ -198,37 +200,66 @@ def get_lead(lead_id: str, db: Session = Depends(get_db)):
     )
 
 
-@router.patch("/{lead_id}/status", response_model=dict)
-def update_lead_status(lead_id: str, request: UpdateLeadStatusRequest, db: Session = Depends(get_db)):
-    """Atualizar status do lead"""
+@router.patch("/{lead_id}", response_model=LeadResponse)
+def update_lead(lead_id: str, request: UpdateLeadRequest, db: Session = Depends(get_db)):
+    """Atualizar lead - MVP completo (status, arquivar, converter)"""
     try:
         lead_uuid = UUID(lead_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="ID do lead inválido")
-
-    # Validar status
-    try:
-        new_status = LeadStatus(request.status)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Status inválido")
 
     # Buscar lead
     lead = db.query(Leads).filter(Leads.id == lead_uuid).first()
     if not lead:
         raise HTTPException(status_code=404, detail="Lead não encontrado")
 
-    # Atualizar status
-    lead.status = new_status
+    # Validar e atualizar status se fornecido
+    if request.status is not None:
+        try:
+            new_status = LeadStatus(request.status)
+        except ValueError:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Status inválido. Status permitidos: {[s.value for s in LeadStatus]}"
+            )
+        lead.status = new_status
+
+    # Arquivar/desarquivar se fornecido
+    if request.is_archived is not None:
+        lead.is_archived = request.is_archived
+
+    # Converter lead se solicitado
+    if request.convert is True:
+        lead.status = LeadStatus.fechado
+        lead.converted_at = datetime.utcnow()
+
+    # Atualizar timestamp
     lead.updated_at = datetime.utcnow()
 
-    # Definir timestamps específicos
-    if new_status == LeadStatus.QUALIFIED:
-        lead.qualified_at = datetime.utcnow()
-        lead.lost_at = None  # Reset lost_at se estava setado
-    elif new_status == LeadStatus.LOST:
-        lead.lost_at = datetime.utcnow()
-        lead.qualified_at = None  # Reset qualified_at se estava setado
-
     db.commit()
+    db.refresh(lead)
 
-    return {"message": "Status atualizado com sucesso"}
+    # Buscar dados relacionados para resposta
+    property_data = None
+    if lead.property_id:
+        prop = db.query(Properties).filter(Properties.id == lead.property_id).first()
+        if prop:
+            property_data = PropertyBasicResponse(id=str(prop.id), title=prop.title)
+
+    messages = db.query(LeadMessages).filter(LeadMessages.lead_id == lead_uuid).order_by(LeadMessages.created_at).all()
+
+    return LeadResponse(
+        id=str(lead.id),
+        name=lead.name,
+        email=lead.email,
+        phone=lead.phone,
+        status=lead.status.value,
+        source=lead.source,
+        property=property_data,
+        messages=[LeadMessageResponse(
+            id=str(msg.id),
+            sender=msg.sender,
+            message=msg.message,
+            created_at=msg.created_at
+        ) for msg in messages]
+    )

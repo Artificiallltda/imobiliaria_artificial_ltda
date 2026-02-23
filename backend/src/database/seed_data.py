@@ -2,6 +2,7 @@
 Script para popular o banco de dados com dados de teste
 """
 import uuid
+from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy.orm import Session
@@ -156,7 +157,7 @@ def create_sample_leads():
                 "name": "Gean Carlos",
                 "email": "gean.carlos@exemplo.com",
                 "phone": "11999999999",
-                "status": LeadStatus.NEW,
+                "status": LeadStatus.novo,
                 "source": "SITE",
                 "property_id": property_ids[0] if len(property_ids) > 0 else None,
             },
@@ -165,7 +166,7 @@ def create_sample_leads():
                 "name": "Deborah Victoria",
                 "email": "deborah.victoria@exemplo.com",
                 "phone": "11888888888",
-                "status": LeadStatus.QUALIFYING,
+                "status": LeadStatus.em_atendimento,
                 "source": "FACEBOOK",
                 "property_id": property_ids[1] if len(property_ids) > 1 else None,
             },
@@ -174,7 +175,7 @@ def create_sample_leads():
                 "name": "João Silva",
                 "email": "joao.silva@email.com",
                 "phone": "11777777777",
-                "status": LeadStatus.QUALIFIED,
+                "status": LeadStatus.proposta_enviada,
                 "source": "SITE",
                 "property_id": property_ids[2] if len(property_ids) > 2 else None,
             },
@@ -183,9 +184,29 @@ def create_sample_leads():
                 "name": "Maria Oliveira",
                 "email": "maria.oliveira@email.com",
                 "phone": None,
-                "status": LeadStatus.LOST,
+                "status": LeadStatus.perdido,
                 "source": "GOOGLE",
                 "property_id": None,
+            },
+            {
+                "id": uuid.uuid4(),
+                "name": "Pedro Santos",
+                "email": "pedro.santos@email.com",
+                "phone": "11666666666",
+                "status": LeadStatus.fechado,
+                "source": "INDICAÇÃO",
+                "property_id": property_ids[0] if len(property_ids) > 0 else None,
+                "converted_at": datetime.utcnow()  # Lead já convertido
+            },
+            {
+                "id": uuid.uuid4(),
+                "name": "Ana Costa",
+                "email": "ana.costa@email.com",
+                "phone": "11555555555",
+                "status": LeadStatus.novo,
+                "source": "INSTAGRAM",
+                "property_id": None,
+                "is_archived": True  # Lead arquivado
             },
         ]
         

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Button, Card, Modal, Select, StatusTag, useToast } from '../../components/ui/index.js'
 import Conversation from '../../components/Leads/Conversation/index.jsx'
-import { getLeadById, updateLeadStatus } from '../../services/leadsService.js'
+import { getLeadById, updateLead } from '../../services/leadsService.js'
 import { useI18n } from '../../i18n/index.jsx'
 import styles from './styles.module.css'
 
@@ -61,19 +61,21 @@ export default function LeadDetail() {
 
   const statusOptions = useMemo(
     () => [
-      { value: 'NEW', label: 'Novo' },
-      { value: 'QUALIFYING', label: 'Qualificando' },
-      { value: 'QUALIFIED', label: 'Qualificado' },
-      { value: 'LOST', label: 'Perdido' },
+      { value: 'novo', label: 'Novo' },
+      { value: 'em_atendimento', label: 'Em Atendimento' },
+      { value: 'proposta_enviada', label: 'Proposta Enviada' },
+      { value: 'fechado', label: 'Fechado' },
+      { value: 'perdido', label: 'Perdido' },
     ],
     [],
   )
 
   const statusTag = useMemo(() => {
-    if (lead?.status === 'NEW') return 'pending'
-    if (lead?.status === 'QUALIFYING') return 'active'
-    if (lead?.status === 'QUALIFIED') return 'success'
-    if (lead?.status === 'LOST') return 'error'
+    if (lead?.status === 'novo') return 'pending'
+    if (lead?.status === 'em_atendimento') return 'active'
+    if (lead?.status === 'proposta_enviada') return 'warning'
+    if (lead?.status === 'fechado') return 'success'
+    if (lead?.status === 'perdido') return 'error'
     return 'inactive'
   }, [lead?.status])
 
@@ -84,8 +86,8 @@ export default function LeadDetail() {
 
   const handleStatusChange = async (next) => {
     try {
-      await updateLeadStatus(id, next)
-      setLead(prev => prev ? { ...prev, status: next } : null)
+      const updatedLead = await updateLead(id, { status: next })
+      setLead(updatedLead)
       toast({ type: 'success', message: 'Status atualizado com sucesso' })
     } catch (err) {
       toast({ type: 'error', message: 'Erro ao atualizar status' })
@@ -98,30 +100,26 @@ export default function LeadDetail() {
     toast({ type: 'success', message: t('leadDetail.toast.messageSent') })
   }
 
-  const handleConvert = () => {
+  const handleConvert = async () => {
     setIsConvertModalOpen(false)
-    // Update the lead status to QUALIFIED when converting
-    updateLeadStatus(lead.id, 'QUALIFIED')
-      .then(updatedLead => {
-        setLead(updatedLead)
-        toast({ type: 'success', message: t('leadDetail.toast.leadConverted') })
-      })
-      .catch(() => {
-        toast({ type: 'error', message: 'Erro ao converter lead' })
-      })
+    try {
+      const updatedLead = await updateLead(lead.id, { convert: true })
+      setLead(updatedLead)
+      toast({ type: 'success', message: t('leadDetail.toast.leadConverted') })
+    } catch (err) {
+      toast({ type: 'error', message: 'Erro ao converter lead' })
+    }
   }
 
-  const handleArchive = () => {
+  const handleArchive = async () => {
     setIsArchiveModalOpen(false)
-    // Update the lead status to LOST when archiving
-    updateLeadStatus(lead.id, 'LOST')
-      .then(updatedLead => {
-        setLead(updatedLead)
-        toast({ type: 'success', message: t('leadDetail.toast.leadArchived') })
-      })
-      .catch(() => {
-        toast({ type: 'error', message: 'Erro ao arquivar lead' })
-      })
+    try {
+      const updatedLead = await updateLead(lead.id, { is_archived: true })
+      setLead(updatedLead)
+      toast({ type: 'success', message: t('leadDetail.toast.leadArchived') })
+    } catch (err) {
+      toast({ type: 'error', message: 'Erro ao arquivar lead' })
+    }
   }
 
   if (loading) {
@@ -235,7 +233,7 @@ export default function LeadDetail() {
           <div className={styles.actionsGrid}>
             <Select
               label={t('leadDetail.quickActions.changeStatus')}
-              value={status}
+              value={lead?.status || ''}
               options={statusOptions}
               onChange={(e) => handleStatusChange(e.target.value)}
             />

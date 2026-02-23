@@ -6,13 +6,15 @@ import { getLeads } from '../../services/leadsService.js'
 
 function mapStatusToDisplay(backendStatus) {
   switch (backendStatus) {
-    case 'NEW':
+    case 'novo':
       return 'pending'
-    case 'QUALIFYING':
+    case 'em_atendimento':
       return 'inService'
-    case 'QUALIFIED':
-      return 'converted'
-    case 'LOST':
+    case 'proposta_enviada':
+      return 'warning'
+    case 'fechado':
+      return 'success'
+    case 'perdido':
       return 'lost'
     default:
       return 'pending'
@@ -64,13 +66,15 @@ export default function Leads() {
   const statusLabel = (status) => {
     switch (status) {
       case 'pending':
-        return t('leads.status.pending')
+        return 'Novo'
       case 'inService':
-        return t('leads.status.inService')
-      case 'converted':
-        return t('leads.status.converted')
+        return 'Em Atendimento'
+      case 'warning':
+        return 'Proposta Enviada'
+      case 'success':
+        return 'Fechado'
       case 'lost':
-        return t('leads.status.lost')
+        return 'Perdido'
       default:
         return status
     }
@@ -83,7 +87,9 @@ export default function Leads() {
         return 'warning'
       case 'inService':
         return 'active'
-      case 'converted':
+      case 'warning':
+        return 'warning'
+      case 'success':
         return 'success'
       case 'lost':
         return 'inactive'
@@ -92,13 +98,14 @@ export default function Leads() {
     }
   }
 
-  // Opções para filtro de status
+  // Opções para filtro de status - ATUALIZADO MVP
   const statusOptions = useMemo(() => [
     { value: '', label: 'Todos os status' },
-    { value: 'NEW', label: 'Novo' },
-    { value: 'QUALIFYING', label: 'Qualificando' },
-    { value: 'QUALIFIED', label: 'Qualificado' },
-    { value: 'LOST', label: 'Perdido' }
+    { value: 'novo', label: 'Novo' },
+    { value: 'em_atendimento', label: 'Em Atendimento' },
+    { value: 'proposta_enviada', label: 'Proposta Enviada' },
+    { value: 'fechado', label: 'Fechado' },
+    { value: 'perdido', label: 'Perdido' }
   ], [])
 
   // Função para aplicar filtros

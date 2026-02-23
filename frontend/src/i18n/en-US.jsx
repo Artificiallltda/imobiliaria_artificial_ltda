@@ -82,8 +82,8 @@ export default {
   },
 
   quickActions: {
-    title: 'Quick actions',
-    subtitle: 'Mocked for flow validation',
+    title: 'Quick Actions',
+    subtitle: 'Manage lead status and actions',
     changeStatus: 'Change status',
 
     openConversation: 'Open conversation',
@@ -93,10 +93,10 @@ export default {
   },
 
   toast: {
-    statusUpdated: 'Status updated (mock).',
-    messageSent: 'Message sent (simulated).',
-    leadConverted: 'Lead marked as converted (mock).',
-    leadArchived: 'Lead archived (mock).',
+    statusUpdated: 'Status updated successfully.',
+    messageSent: 'Message sent successfully.',
+    leadConverted: 'Lead marked as converted successfully.',
+    leadArchived: 'Lead archived successfully.',
   },
 
   statusOptions: {
@@ -109,14 +109,14 @@ export default {
 
   modals: {
     convert: {
-      title: 'Mark as converted',
-      body: 'This action is simulated. Confirm marking this lead as converted?',
+      title: 'Mark as Converted',
+      body: 'Confirm marking this lead as converted? The status will be changed to "closed".',
       cancel: 'Cancel',
       confirm: 'Confirm',
     },
     archive: {
-      title: 'Archive lead',
-      body: 'This action is simulated. Confirm archiving this lead?',
+      title: 'Archive Lead',
+      body: 'Confirm archiving this lead? It will no longer appear in the active list.',
       cancel: 'Cancel',
       confirm: 'Archive',
     },
