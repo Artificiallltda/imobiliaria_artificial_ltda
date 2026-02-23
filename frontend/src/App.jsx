@@ -55,7 +55,7 @@ function App() {
           <Route path="/admin/properties/:id/edit" element={<AdminPropertyForm />} />
 
           {/* Outros */}
-          <Route path="/meus-favoritos" element={<SimplePage title="Meus Favoritos" />} />
+          <Route path="/meus-favoritos" element={<Favorites />} />
           <Route path="/personalizar" element={<Settings />} />
 
           <Route path="*" element={<SimplePage title="404 - Não encontrado" />} />

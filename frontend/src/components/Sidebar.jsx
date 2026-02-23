@@ -113,14 +113,6 @@ export default function Sidebar({
           />
 
           <MenuLink
-            to="/favoritos"
-            icon={<StarIcon />}
-            collapsed={collapsed}
-            onNavigate={handleNavigate}
-            label={t("sidebar.links.favoritesList")}
-          />
-
-          <MenuLink
             to="/mensagens"
             icon={<MessagesIcon />}
             collapsed={collapsed}

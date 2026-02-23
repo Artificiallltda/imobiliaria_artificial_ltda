@@ -1,0 +1,177 @@
+.favorites-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 20px 0;
+}
+
+.property-card {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid #e5e7eb;
+  background: white;
+}
+
+.property-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.card-image {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #f3f4f6;
+}
+
+.property-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.status-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-content {
+  padding: 20px;
+}
+
+.card-header {
+  margin-bottom: 12px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.location {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.price {
+  font-size: 24px;
+  font-weight: 700;
+  color: #059669;
+  margin-bottom: 16px;
+}
+
+.details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.detail {
+  font-size: 13px;
+  color: #4b5563;
+  background: #f9fafb;
+  padding: 6px 10px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #e5e7eb;
+}
+
+.status-detail {
+  font-weight: 600;
+}
+
+.statusAVAILABLE {
+  background: #d1fae5;
+  color: #065f46;
+  border-color: #10b981;
+}
+
+.statusRESERVED {
+  background: #fed7aa;
+  color: #92400e;
+  border-color: #f97316;
+}
+
+.statusSOLD {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #ef4444;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.card-actions button {
+  flex: 1;
+  min-width: 100px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .favorites-grid {
+    gap: 16px;
+    padding: 16px 0;
+  }
+  
+  .card-content {
+    padding: 16px;
+  }
+  
+  .details {
+    gap: 8px;
+  }
+  
+  .detail {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+  
+  .card-actions {
+    flex-direction: column;
+  }
+  
+  .card-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-image {
+    height: 160px;
+  }
+  
+  .title {
+    font-size: 16px;
+  }
+  
+  .price {
+    font-size: 20px;
+  }
+}
