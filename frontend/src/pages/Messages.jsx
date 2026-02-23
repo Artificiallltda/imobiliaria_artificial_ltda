@@ -20,19 +20,25 @@ export default function Messages() {
   const [mobileShowList, setMobileShowList] = useState(true)
   const [text, setText] = useState('')
 
-  const active = useMemo(
-    () => conversations.find((c) => c.id === activeId) || null,
-    [conversations, activeId],
-  )
+  // ✅ Aba: Ativas / Arquivadas
+  const [showArchived, setShowArchived] = useState(false)
 
+  const active = useMemo(() => conversations.find((c) => c.id === activeId) || null, [conversations, activeId])
+
+  // ✅ Filtra conversas visíveis conforme aba
+  const visibleConversations = useMemo(() => {
+    return conversations.filter((c) => (showArchived ? c.status === 'Arquivada' : c.status !== 'Arquivada'))
+  }, [conversations, showArchived])
+
+  // ✅ Ordena somente as visíveis
   const sortedConversations = useMemo(() => {
-    return [...conversations].sort((a, b) => {
+    return [...visibleConversations].sort((a, b) => {
       const sa = STATUS_ORDER[a.status] ?? 9
       const sb = STATUS_ORDER[b.status] ?? 9
       if (sa !== sb) return sa - sb
       return new Date(b.updatedAt) - new Date(a.updatedAt)
     })
-  }, [conversations])
+  }, [visibleConversations])
 
   const handleOpenConversation = (id) => {
     setActiveId(id)
@@ -74,6 +80,30 @@ export default function Messages() {
     setText('')
   }
 
+  // ✅ Arquivar (mock)
+  const handleArchive = () => {
+    if (!active) return
+
+    setConversations((prev) =>
+      prev.map((c) =>
+        c.id === active.id
+          ? {
+              ...c,
+              status: 'Arquivada',
+              unreadCount: 0,
+              updatedAt: new Date().toISOString(),
+            }
+          : c,
+      ),
+    )
+
+    // Se estiver na aba Ativas, some da lista e limpa o chat
+    if (!showArchived) {
+      setActiveId(null)
+      setMobileShowList(true)
+    }
+  }
+
   const statusLabel = (statusPt) => {
     if (statusPt === 'Não lida') return t('messages.status.unread')
     if (statusPt === 'Ativa') return t('messages.status.active')
@@ -98,6 +128,17 @@ export default function Messages() {
             onClick={() => setMobileShowList(false)}
           >
             {t('messages.viewChat')}
+          </Button>
+        </div>
+
+        {/* ✅ Toggle Ativas / Arquivadas */}
+        <div style={{ display: 'flex', gap: 8, padding: '0 12px 12px' }}>
+          <Button variant={showArchived ? 'outline' : 'default'} type="button" onClick={() => setShowArchived(false)}>
+            {t('messages.status.active')}
+          </Button>
+
+          <Button variant={showArchived ? 'default' : 'outline'} type="button" onClick={() => setShowArchived(true)}>
+            {t('messages.status.archived')}
           </Button>
         </div>
 
@@ -149,8 +190,15 @@ export default function Messages() {
                 <div className="chat-subtitle">{active.property}</div>
               </div>
 
-              <div className="chat-header-actions">
+              <div className="chat-header-actions" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <span className={`chat-status status-${slug(active.status)}`}>{statusLabel(active.status)}</span>
+
+                {/* ✅ Botão Arquivar (só se não estiver arquivada) */}
+                {active.status !== 'Arquivada' && (
+                  <Button variant="outline" type="button" onClick={handleArchive}>
+                    Arquivar
+                  </Button>
+                )}
 
                 <Button
                   variant="outline"
@@ -191,8 +239,6 @@ export default function Messages() {
               />
               <Button onClick={handleSend}>{t('messages.chat.send')}</Button>
             </div>
-
-            
           </div>
         )}
       </section>
