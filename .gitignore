@@ -1,13 +1,9 @@
-# =========================
-# ENV
-# =========================
+# Env
 .env
 .env.*
 !.env.example
 
-# =========================
-# BACKEND - PYTHON
-# =========================
+# Backend - Python
 backend/venv/
 backend/.venv/
 backend/**/__pycache__/
@@ -19,40 +15,20 @@ backend/.mypy_cache/
 backend/*.egg-info/
 backend/**/*.egg-info/
 
-# =========================
-# FRONTEND - NODE
-# =========================
+# Frontend - Node
 frontend/node_modules/
 frontend/dist/
 frontend/dist-ssr/
 
-# =========================
-# REALTIME SERVER - NODE
-# =========================
-realtime-server/node_modules/
-realtime-server/dist/
-
-# =========================
-# GLOBAL NODE (extra segurança)
-# =========================
-node_modules/
-**/node_modules/
-
-# =========================
-# LOGS
-# =========================
+# Logs
 *.log
 logs/
 
-# =========================
 # OS
-# =========================
 .DS_Store
 Thumbs.db
 
-# =========================
 # IDE
-# =========================
 .vscode/
 .idea/
 *.suo
@@ -60,9 +36,5 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
-
-# =========================
-# DOCS
-# =========================
 docs/
 configurar_database.md

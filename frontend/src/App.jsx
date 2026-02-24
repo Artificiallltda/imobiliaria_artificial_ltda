@@ -16,7 +16,6 @@ import AdminPropertyForm from './pages/AdminPropertyForm/index.jsx'
 import { isAuthenticated, logout as doLogout } from './services/auth.js'
 import { useTheme } from './context/ThemeContext.jsx'
 import { useI18n } from './i18n/index.jsx'
-import { socket } from './services/socket' // ✅ sem .js (mais compatível)
 
 function App() {
   const [auth, setAuth] = useState(false)
@@ -24,31 +23,6 @@ function App() {
   useEffect(() => {
     setAuth(isAuthenticated())
   }, [])
-
-  // ✅ Conecta no socket somente quando estiver autenticado
-  useEffect(() => {
-  if (!auth) return
-
-  console.log('🟦 Preparando socket... conectado agora?', socket.connected)
-
-  const onConnect = () => console.log('✅ Socket conectado:', socket.id)
-  const onDisconnect = () => console.log('⚠️ Socket desconectou')
-  const onConnectError = (err) => console.log('❌ Socket connect_error:', err?.message || err)
-
-  socket.on('connect', onConnect)
-  socket.on('disconnect', onDisconnect)
-  socket.on('connect_error', onConnectError)
-
-  // ✅ Conecta DEPOIS de registrar listeners
-  socket.connect()
-
-  return () => {
-    socket.off('connect', onConnect)
-    socket.off('disconnect', onDisconnect)
-    socket.off('connect_error', onConnectError)
-    socket.disconnect()
-  }
-}, [auth]) 
 
   // TODO: Migrar este controle simples de auth para ProtectedRoute e/ou AuthContext.
   if (!auth) {
@@ -261,7 +235,10 @@ function DashboardPage() {
           <Select placeholder="Cidade" defaultValue="" options={selectOptions} />
           <Select placeholder="País" defaultValue="" options={selectOptions} />
 
-          <Button className="btn-search" onClick={() => toast({ type: 'success', message: 'Busca iniciada (mock).' })}>
+          <Button
+            className="btn-search"
+            onClick={() => toast({ type: 'success', message: 'Busca iniciada (mock).' })}
+          >
             Buscar
           </Button>
         </div>
@@ -314,6 +291,7 @@ function DashboardPage() {
             </Button>
             <Button
               onClick={() => {
+                // TODO - Aplicar filtros e busca via backend quando a API estiver disponível
                 setIsFilterModalOpen(false)
                 toast({ type: 'warning', message: 'Filtros aplicados (mock).' })
               }}
