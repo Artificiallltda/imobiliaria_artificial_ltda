@@ -11,26 +11,38 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'ff7bdbb28807'
-down_revision = '9951317c9a22'
+revision = "ff7bdbb28807"
+down_revision = "9951317c9a22"
 branch_labels = None
 depends_on = None
 
 
 def upgrade() -> None:
-    # Verificar se há dados inválidos e corrigir
-    # Se houver algum registro com status inválido, definir como 'novo'
-    op.execute("""
-        UPDATE leads 
-        SET status = 'novo'::lead_status
-        WHERE status::text NOT IN ('novo', 'em_atendimento', 'proposta_enviada', 'fechado', 'perdido')
-    """)
+    """
+    Corrige registros com status inválido para um valor válido
+    do enum atual de leads.
+
+    Neste ponto da linha do tempo, o tipo lead_status ainda
+    está usando os valores em inglês ('NEW', 'QUALIFYING',
+    'QUALIFIED', 'LOST'). A migration posterior
+    6827630706db_add_lead_mvp_fields é que converte para
+    os valores em português.
+    """
+    op.execute(
+        """
+        UPDATE leads
+        SET status = 'NEW'::lead_status
+        WHERE status::text NOT IN ('NEW', 'QUALIFYING', 'QUALIFIED', 'LOST')
+        """
+    )
 
 
 def downgrade() -> None:
-    # Reverter para valores antigos se necessário
-    op.execute("""
-        UPDATE leads 
+    # Mantém lógica simétrica, mas usando o enum antigo
+    op.execute(
+        """
+        UPDATE leads
         SET status = 'NEW'::lead_status
         WHERE status::text NOT IN ('NEW', 'QUALIFYING', 'QUALIFIED', 'LOST')
-    """)
+        """
+    )
