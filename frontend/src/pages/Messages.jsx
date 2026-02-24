@@ -1,10 +1,11 @@
 // src/pages/Messages.jsx
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { messagesMock } from '../mocks/messagesMock.jsx'
 import { Button, Input } from '../components/ui/index.js'
 import { useI18n } from '../i18n/index.jsx'
+import { socket } from '../services/socket'
 
-// IMPORTANTe:
+// IMPORTANTE:
 // - O mock mantém status em PT: "Não lida" | "Ativa" | "Arquivada"
 // - A UI traduz esses rótulos via t(), sem mudar o valor do mock
 const STATUS_ORDER = { 'Não lida': 0, Ativa: 1, Arquivada: 2 }
@@ -16,14 +17,14 @@ export default function Messages() {
   const me = messagesMock.me
   const [conversations, setConversations] = useState(messagesMock.conversations)
 
-  const [activeId, setActiveId] = useState(conversations[0]?.id || null)
+  const [activeId, setActiveId] = useState(messagesMock.conversations[0]?.id || null)
   const [mobileShowList, setMobileShowList] = useState(true)
   const [text, setText] = useState('')
 
   // ✅ Aba: Ativas / Arquivadas
   const [showArchived, setShowArchived] = useState(false)
 
-  const active = useMemo(() => conversations.find((c) => c.id === activeId) || null, [conversations, activeId])
+  const active = useMemo(() => conversations.find((c) => String(c.id) === String(activeId)) || null, [conversations, activeId])
 
   // ✅ Filtra conversas visíveis conforme aba
   const visibleConversations = useMemo(() => {
@@ -40,13 +41,109 @@ export default function Messages() {
     })
   }, [visibleConversations])
 
+  // ✅ Entrar/Sair da sala conforme conversa ativa (ID pode ser "c1")
+  useEffect(() => {
+    if (!activeId) return
+
+    socket.emit('join_conversation', String(activeId))
+    // console.log('📌 join_conversation:', String(activeId))
+
+    return () => {
+      socket.emit('leave_conversation', String(activeId))
+      // console.log('📌 leave_conversation:', String(activeId))
+    }
+  }, [activeId])
+
+  // ✅ Ouvir mensagem em tempo real (sala da conversa)
+  useEffect(() => {
+    const onNewMessage = (payload) => {
+      // payload vindo do Node: message (ex.: { id, conversation_id, sender_type, content, created_at })
+      console.log('📩 RECEBI new_message:', payload)
+
+      const msg = adaptMessage(payload)
+
+      // 🔥 prioridade total: conversation_id vindo do backend
+      const targetId =
+        msg.conversationIdFromBackend ??
+        msg.conversationId ??
+        payload?.conversation_id ??
+        payload?.conversationId ??
+        activeId
+
+      setConversations((prev) =>
+        prev.map((c) => {
+          if (String(c.id) !== String(targetId)) return c
+
+          const exists = (c.messages || []).some((m) => m.id === msg.id)
+          if (exists) return c
+
+          return {
+            ...c,
+            updatedAt: msg.at,
+            messages: [...(c.messages || []), { id: msg.id, from: msg.from, text: msg.text, at: msg.at }],
+          }
+        }),
+      )
+    }
+
+    socket.on('new_message', onNewMessage)
+
+    return () => {
+      socket.off('new_message', onNewMessage)
+    }
+  }, [activeId])
+
+  // ✅ Atualizar lista de conversas em tempo real (unreadCount / is_read / reorder via updatedAt)
+  useEffect(() => {
+    const onConversationUpdated = (updated) => {
+      console.log('🟨 RECEBI conversation_updated:', updated)
+
+      const convId = updated?.id
+      if (!convId) return
+
+      setConversations((prev) => {
+        const next = prev.map((c) => {
+          if (String(c.id) !== String(convId)) return c
+
+          const updatedAt = updated.updated_at ? new Date(updated.updated_at).toISOString() : c.updatedAt
+
+          // status PT no mock
+          let status = c.status
+          if (updated.is_archived === true) status = 'Arquivada'
+          else if (updated.is_read === false && (updated.unread_count ?? 0) > 0) status = 'Não lida'
+          else if (updated.is_archived === false) {
+            if (status === 'Arquivada') status = 'Ativa'
+            if (status === 'Não lida' && (updated.unread_count ?? 0) === 0) status = 'Ativa'
+          }
+
+          return {
+            ...c,
+            updatedAt,
+            status,
+            unreadCount: Number(updated.unread_count ?? c.unreadCount ?? 0),
+          }
+        })
+
+        return next
+      })
+    }
+
+    socket.on('conversation_updated', onConversationUpdated)
+
+    return () => {
+      socket.off('conversation_updated', onConversationUpdated)
+    }
+  }, [])
+
   const handleOpenConversation = (id) => {
     setActiveId(id)
 
     // marca como lida (mock)
     setConversations((prev) =>
       prev.map((c) =>
-        c.id === id ? { ...c, status: c.status === 'Não lida' ? 'Ativa' : c.status, unreadCount: 0 } : c,
+        String(c.id) === String(id)
+          ? { ...c, status: c.status === 'Não lida' ? 'Ativa' : c.status, unreadCount: 0 }
+          : c,
       ),
     )
 
@@ -65,13 +162,14 @@ export default function Messages() {
       at: new Date().toISOString(),
     }
 
+    // ✅ Atualiza UI local imediatamente (optimistic)
     setConversations((prev) =>
       prev.map((c) =>
-        c.id === active.id
+        String(c.id) === String(active.id)
           ? {
               ...c,
               updatedAt: newMessage.at,
-              messages: [...c.messages, newMessage],
+              messages: [...(c.messages || []), newMessage],
             }
           : c,
       ),
@@ -86,7 +184,7 @@ export default function Messages() {
 
     setConversations((prev) =>
       prev.map((c) =>
-        c.id === active.id
+        String(c.id) === String(active.id)
           ? {
               ...c,
               status: 'Arquivada',
@@ -149,7 +247,7 @@ export default function Messages() {
               type="button"
               className={[
                 'conv-item',
-                c.id === activeId ? 'conv-item--active' : '',
+                String(c.id) === String(activeId) ? 'conv-item--active' : '',
                 c.status === 'Arquivada' ? 'conv-item--archived' : '',
               ]
                 .filter(Boolean)
@@ -244,6 +342,42 @@ export default function Messages() {
       </section>
     </div>
   )
+}
+
+function adaptMessage(payload) {
+  if (!payload) {
+    return { id: `m-${Date.now()}`, from: 'client', text: '', at: new Date().toISOString() }
+  }
+
+  // formato backend: { id, conversation_id, sender_type, content, created_at }
+  if (payload.content && payload.sender_type) {
+    return {
+      id: payload.id ?? `m-${Date.now()}`,
+      conversationIdFromBackend: payload.conversation_id,
+      from: payload.sender_type === 'cliente' ? 'client' : 'agent',
+      text: payload.content,
+      at: payload.created_at ? new Date(payload.created_at).toISOString() : new Date().toISOString(),
+    }
+  }
+
+  // formato mock: { id, from, text, at }
+  if (payload.text && payload.at) {
+    return {
+      id: payload.id ?? `m-${Date.now()}`,
+      conversationId: payload.conversationId,
+      from: payload.from ?? 'client',
+      text: payload.text,
+      at: payload.at,
+    }
+  }
+
+  return {
+    id: payload.id ?? `m-${Date.now()}`,
+    conversationId: payload.conversationId ?? payload.conversation_id,
+    from: payload.from ?? 'client',
+    text: payload.text ?? payload.content ?? '',
+    at: payload.at ?? payload.created_at ?? new Date().toISOString(),
+  }
 }
 
 function lastText(messages = [], t) {
