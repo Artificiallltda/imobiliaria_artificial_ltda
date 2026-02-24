@@ -17,6 +17,7 @@ from src.routes.properties import router as properties_router
 from src.routes.properties_crud import router as properties_crud_router
 from src.routes.leads.leads import router as leads_router
 from src.routes.favoritos import router as favorites_router
+from src.routes.settings import router as settings_router
 
 app = FastAPI(title="API Imobiliária", version="1.0.0")
 
@@ -38,6 +39,9 @@ app.include_router(leads_router)
 
 # Incluir rotas de favoritos
 app.include_router(favorites_router)
+
+# Incluir rotas de settings
+app.include_router(settings_router)
 
 
 class LoginPayload(BaseModel):

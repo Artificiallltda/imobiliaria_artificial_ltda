@@ -1,40 +1,45 @@
 import { useState, useEffect } from 'react';
-import { settingsMock, saveSettingsMock } from '../../mocks/settingsMock';
-import { Card, Input, Button, Select } from '../../components/ui';
+import { getSettings, updateSettings } from '../../services/settingsService';
+import { Card, Input, Button, Select, useToast } from '../../components/ui';
 import styles from './styles.module.css';
 
 export default function Settings() {
-  const [settings, setSettings] = useState(settingsMock);
+  const [settings, setSettings] = useState({
+    theme: 'light',
+    language: 'pt-BR',
+    notifications_enabled: true,
+    company_name: '',
+    company_phone: '',
+    company_email: ''
+  });
   const [isSaving, setIsSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [hasChanges, setHasChanges] = useState(false);
+  const { toast } = useToast();
 
-  // Carrega as configurações iniciais
+  // Carregar configurações ao abrir página
   useEffect(() => {
-    // TODO - Buscar configurações da API
-    setSettings(settingsMock);
+    const fetchSettings = async () => {
+      try {
+        const data = await getSettings();
+        setSettings(data);
+      } catch (error) {
+        toast({
+          type: 'error',
+          message: 'Erro ao carregar configurações'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSettings();
   }, []);
 
-  const handleInputChange = (section, field, value) => {
+  const handleInputChange = (field, value) => {
     setSettings(prev => ({
       ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value
-      }
-    }));
-    setHasChanges(true);
-  };
-
-  const handleNestedInputChange = (section, parentField, field, value) => {
-    setSettings(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [parentField]: {
-          ...prev[section][parentField],
-          [field]: value
-        }
-      }
+      [field]: value
     }));
     setHasChanges(true);
   };
@@ -42,17 +47,51 @@ export default function Settings() {
   const handleSave = async () => {
     try {
       setIsSaving(true);
-      // TODO - Persistir configurações no backend
-      await saveSettingsMock(settings);
+      
+      // Apenas campos que foram alterados
+      const updateData = {};
+      Object.keys(settings).forEach(key => {
+        if (settings[key] !== undefined) {
+          updateData[key] = settings[key];
+        }
+      });
+
+      await updateSettings(updateData);
       setHasChanges(false);
-      // TODO - Usar o sistema de toast do projeto
-      alert('Configurações salvas com sucesso!');
+      
+      toast({
+        type: 'success',
+        message: 'Configurações salvas com sucesso!'
+      });
+
+      // Aplicar tema imediatamente
+      if (updateData.theme) {
+        document.body.dataset.theme = updateData.theme;
+      }
+
+      // Aplicar idioma imediatamente (se existir sistema de i18n)
+      if (updateData.language && window.i18n) {
+        window.i18n.changeLanguage(updateData.language);
+      }
+
     } catch (error) {
-      alert('Erro ao salvar configurações. Tente novamente.');
+      toast({
+        type: 'error',
+        message: 'Erro ao salvar configurações'
+      });
     } finally {
       setIsSaving(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <h1>Personalização</h1>
+        <p>Carregando configurações...</p>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
@@ -69,48 +108,40 @@ export default function Settings() {
         )}
       </div>
 
-      {/* Seção de Dados Pessoais */}
-      <Card title="Dados Pessoais" className={styles.section}>
+      {/* Seção de Preferências */}
+      <Card title="Preferências" className={styles.section}>
         <div className={styles.formGrid}>
-          <Input
-            label="Nome"
-            value={settings.user.name}
-            onChange={(e) => handleInputChange('user', 'name', e.target.value)}
+          <Select
+            label="Tema"
+            value={settings.theme}
+            options={[
+              { value: 'light', label: 'Claro' },
+              { value: 'dark', label: 'Escuro' },
+            ]}
+            onChange={(e) => handleInputChange('theme', e.target.value)}
             size="small"
           />
-          <Input
-            label="E-mail"
-            type="email"
-            value={settings.user.email}
-            onChange={(e) => handleInputChange('user', 'email', e.target.value)}
+          <Select
+            label="Idioma"
+            value={settings.language}
+            options={[
+              { value: 'pt-BR', label: 'Português' },
+              { value: 'en-US', label: 'Inglês' },
+              { value: 'es-ES', label: 'Espanhol' },
+            ]}
+            onChange={(e) => handleInputChange('language', e.target.value)}
             size="small"
           />
-          <Input
-            label="Telefone"
-            value={settings.user.phone}
-            onChange={(e) => handleInputChange('user', 'phone', e.target.value)}
-            size="small"
-          />
-        </div>
-
-        <div className={styles.subtitle}>Notificações</div>
-        <div className={styles.checkboxGroup}>
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={settings.user.notifications.email}
-              onChange={(e) => handleNestedInputChange('user', 'notifications', 'email', e.target.checked)}
-            />
-            E-mail
-          </label>
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={settings.user.notifications.whatsapp}
-              onChange={(e) => handleNestedInputChange('user', 'notifications', 'whatsapp', e.target.checked)}
-            />
-            WhatsApp
-          </label>
+          <div className={styles.checkboxGroup}>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={settings.notifications_enabled}
+                onChange={(e) => handleInputChange('notifications_enabled', e.target.checked)}
+              />
+              Notificações por e-mail
+            </label>
+          </div>
         </div>
       </Card>
 
@@ -118,147 +149,26 @@ export default function Settings() {
       <Card title="Dados da Imobiliária" className={styles.section}>
         <div className={styles.formGrid}>
           <Input
-            label="Nome"
-            value={settings.realEstate.name}
-            onChange={(e) => handleInputChange('realEstate', 'name', e.target.value)}
+            label="Nome da Empresa"
+            value={settings.company_name || ''}
+            onChange={(e) => handleInputChange('company_name', e.target.value)}
             size="small"
-          />
-          <Input
-            label="CNPJ"
-            value={settings.realEstate.cnpj}
-            onChange={(e) => handleInputChange('realEstate', 'cnpj', e.target.value)}
-            size="small"
+            placeholder="Imobiliária XPTO"
           />
           <Input
             label="Telefone"
-            value={settings.realEstate.phone}
-            onChange={(e) => handleInputChange('realEstate', 'phone', e.target.value)}
+            value={settings.company_phone || ''}
+            onChange={(e) => handleInputChange('company_phone', e.target.value)}
             size="small"
+            placeholder="(11) 99999-9999"
           />
           <Input
             label="E-mail"
             type="email"
-            value={settings.realEstate.email}
-            onChange={(e) => handleInputChange('realEstate', 'email', e.target.value)}
+            value={settings.company_email || ''}
+            onChange={(e) => handleInputChange('company_email', e.target.value)}
             size="small"
-          />
-        </div>
-
-        <div className={styles.subtitle}>Endereço</div>
-        <div className={styles.formGrid}>
-          <Input
-            label="Rua"
-            value={settings.realEstate.address.street}
-            onChange={(e) => handleNestedInputChange('realEstate', 'address', 'street', e.target.value)}
-            size="small"
-          />
-          <div className={styles.addressRow}>
-            <div className={styles.addressField}>
-              <Input
-                label="Número"
-                value={settings.realEstate.address.number}
-                onChange={(e) => handleNestedInputChange('realEstate', 'address', 'number', e.target.value)}
-                size="small"
-              />
-            </div>
-            <div className={styles.addressField}>
-              <Input
-                label="Complemento"
-                value={settings.realEstate.address.complement}
-                onChange={(e) => handleNestedInputChange('realEstate', 'address', 'complement', e.target.value)}
-                size="small"
-              />
-            </div>
-          </div>
-          <div className={styles.addressRow}>
-            <div className={styles.addressField}>
-              <Input
-                label="Bairro"
-                value={settings.realEstate.address.neighborhood}
-                onChange={(e) => handleNestedInputChange('realEstate', 'address', 'neighborhood', e.target.value)}
-                size="small"
-              />
-            </div>
-            <div className={styles.addressField}>
-              <Input
-                label="Cidade"
-                value={settings.realEstate.address.city}
-                onChange={(e) => handleNestedInputChange('realEstate', 'address', 'city', e.target.value)}
-                size="small"
-              />
-            </div>
-          </div>
-          <div className={`${styles.addressRow} ${styles.cepRow}`}>
-            <div className={styles.addressField}>
-              <Input
-                label="UF"
-                value={settings.realEstate.address.state}
-                onChange={(e) => handleNestedInputChange('realEstate', 'address', 'state', e.target.value)}
-                size="small"
-                maxLength={2}
-                style={{textTransform: 'uppercase'}}
-              />
-            </div>
-            <div className={styles.addressField}>
-              <Input
-                label="CEP"
-                value={settings.realEstate.address.cep}
-                onChange={(e) => handleNestedInputChange('realEstate', 'address', 'cep', e.target.value)}
-                size="small"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.uploadSection}>
-          <label className={styles.uploadLabel}>
-            Logo
-            <div className={styles.uploadBox}>
-              {settings.realEstate.logo ? (
-                <img 
-                  src={settings.realEstate.logo} 
-                  alt="Logo" 
-                  className={styles.logoPreview}
-                />
-              ) : (
-                <span>Clique para fazer upload</span>
-              )}
-              <input 
-                type="file" 
-                accept="image/*" 
-                style={{ display: 'none' }}
-                onChange={(e) => {
-                  // TODO - Implementar lógica de upload
-                }}
-              />
-            </div>
-          </label>
-        </div>
-      </Card>
-
-      {/* Seção de Preferências */}
-      <Card title="Preferências" className={styles.section}>
-        <div className={styles.formGrid}>
-          <Select
-            label="Tema"
-            value={settings.user.theme}
-            options={[
-              { value: 'light', label: 'Claro' },
-              { value: 'dark', label: 'Escuro' },
-              { value: 'system', label: 'Sistema' },
-            ]}
-            onChange={(e) => handleInputChange('user', 'theme', e.target.value)}
-            size="small"
-          />
-          <Select
-            label="Idioma"
-            value={settings.user.language}
-            options={[
-              { value: 'pt-BR', label: 'Português' },
-              { value: 'en-US', label: 'Inglês' },
-            ]}
-            onChange={(e) => handleInputChange('user', 'language', e.target.value)}
-            size="small"
+            placeholder="contato@imobiliaria.com"
           />
         </div>
       </Card>

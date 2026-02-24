@@ -208,3 +208,24 @@ class Favorites(Base):
         # Constraint única: um usuário não pode favoritar o mesmo imóvel duas vezes
         UniqueConstraint('user_id', 'property_id', name='uq_user_property_favorite'),
     )
+
+
+class UserSettings(Base):
+    """Modelo para configurações do usuário"""
+    __tablename__ = "user_settings"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("Users.id", ondelete="CASCADE"), nullable=False, unique=True)
+    theme = Column(String(20), nullable=False, default='light')
+    language = Column(String(10), nullable=False, default='pt-BR')
+    notifications_enabled = Column(Boolean, nullable=False, default=True)
+    company_name = Column(String(150), nullable=True)
+    company_phone = Column(String(50), nullable=True)
+    company_email = Column(String(150), nullable=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        # Constraint única: um usuário só pode ter um registro de configurações
+        UniqueConstraint('user_id', name='uq_user_settings'),
+    )
