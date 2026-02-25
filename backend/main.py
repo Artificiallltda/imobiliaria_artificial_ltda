@@ -16,6 +16,7 @@ from src.routes.leads.leads import router as leads_router
 from src.routes.properties import router as properties_router
 from src.routes.properties_crud import router as properties_crud_router
 from src.routes.settings import router as settings_router
+from src.routes.dashboard import router as dashboard_router  # ✅ NOVO
 
 app = FastAPI(title="API Imobiliária", version="1.0.0")
 
@@ -41,6 +42,9 @@ app.include_router(conversations_router)
 app.include_router(leads_router)
 app.include_router(favorites_router)
 app.include_router(settings_router)
+
+# ✅ Incluir rotas de dashboard
+app.include_router(dashboard_router)
 
 
 class LoginPayload(BaseModel):
