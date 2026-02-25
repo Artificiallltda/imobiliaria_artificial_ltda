@@ -1,11 +1,11 @@
 import os
-from urllib.parse import quote
+from urllib.parse import quote_plus
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-# Load .env from backend root (default behavior when running from backend/).
+# Carrega .env (rodando a partir de backend/)
 load_dotenv(encoding="utf-8")
 
 DB_HOST = os.getenv("DB_HOST", "localhost")
@@ -16,16 +16,18 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_CLIENT_ENCODING = os.getenv("DB_CLIENT_ENCODING", "UTF8")
 
 if not all([DB_NAME, DB_USER, DB_PASSWORD]):
-    raise RuntimeError(
-        "Missing DB config. Set DB_NAME, DB_USER, and DB_PASSWORD in backend/.env"
-    )
+    raise RuntimeError("Missing DB config. Set DB_NAME, DB_USER, and DB_PASSWORD in backend/.env")
 
-# Ensure libpq/psycopg2 uses the desired client encoding on Windows.
+# ✅ IMPORTANTÍSSIMO: URL-encode user/senha (senha tem @, %, etc)
+DB_USER_ENC = quote_plus(DB_USER)
+DB_PASSWORD_ENC = quote_plus(DB_PASSWORD)
+
+# ✅ Força encoding no client do Postgres
 os.environ["PGCLIENTENCODING"] = DB_CLIENT_ENCODING
-options = quote(f"-c client_encoding={DB_CLIENT_ENCODING}")
+options = quote_plus(f"-c client_encoding={DB_CLIENT_ENCODING}")
 
 DATABASE_URL = (
-    f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    f"postgresql+psycopg2://{DB_USER_ENC}:{DB_PASSWORD_ENC}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     f"?options={options}"
 )
 
