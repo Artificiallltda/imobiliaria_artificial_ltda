@@ -66,6 +66,10 @@ class PropertyDetailResponse(BaseModel):
     has_garden: bool
     furnished: bool
 
+    # localização
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+
     # imagens
     images: List[PropertyImageResponse]
 
@@ -202,6 +206,9 @@ def get_property_by_id(property_id: str, db: Session = Depends(get_db)):
         has_pool=property_obj.has_pool,
         has_garden=property_obj.has_garden,
         furnished=property_obj.furnished,
+
+        latitude=float(property_obj.latitude) if property_obj.latitude else None,
+        longitude=float(property_obj.longitude) if property_obj.longitude else None,
 
         images=images
     )

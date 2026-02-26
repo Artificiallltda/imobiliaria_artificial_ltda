@@ -1,0 +1,378 @@
+.galleryContainer {
+  position: relative;
+  width: 100%;
+  background: #f8f9fa;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.mainSwiper {
+  width: 100%;
+  height: 400px;
+}
+
+.slideContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+}
+
+.mainImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.mainImage:hover {
+  transform: scale(1.05);
+}
+
+.imageOverlay {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: rgba(59, 130, 246, 0.9); /* Azul mais visível */
+  color: white;
+  padding: 10px 16px; /* Aumentado para melhor visibilidade */
+  border-radius: 20px;
+  font-size: 14px; /* Aumentado */
+  font-weight: 700; /* Mais negrito */
+  backdrop-filter: blur(10px);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); /* Sombra azul */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Borda sutil */
+}
+
+.imageNumber {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Navegação - Setas Modernas */
+.swiper-button-prev,
+.swiper-button-next {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Gradiente roxo */
+  border-radius: 50%;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  backdrop-filter: blur(20px);
+  z-index: 20;
+  margin-top: 0;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swiper-button-prev:hover,
+.swiper-button-next:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); /* Gradiente invertido */
+  transform: scale(1.15) translateY(-2px);
+  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.6);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.swiper-button-prev:active,
+.swiper-button-next:active {
+  transform: scale(1.05) translateY(-1px);
+  transition: all 0.1s ease;
+}
+
+.swiper-button-prev::after,
+.swiper-button-next::after {
+  font-size: 20px;
+  color: white;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swiper-button-prev::after {
+  content: '←';
+  margin-left: -2px;
+}
+
+.swiper-button-next::after {
+  content: '→';
+  margin-right: -2px;
+}
+
+/* Efeito de brilho */
+.swiper-button-prev::before,
+.swiper-button-next::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.swiper-button-prev:hover::before,
+.swiper-button-next:hover::before {
+  opacity: 1;
+}
+
+.swiper-button-prev {
+  left: 16px;
+}
+
+.swiper-button-next {
+  right: 16px;
+}
+
+/* Thumbnails - Melhorados */
+.thumbsSwiper {
+  padding: 16px 32px; /* Aumentar padding lateral */
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  height: 100px; /* Aumentado para melhor visibilidade */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.thumbsSwiper .swiper-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 800px; /* Limitar largura máxima */
+  margin: 0 auto;
+}
+
+.thumbContainer {
+  position: relative;
+  width: 100%;
+  height: 100%; /* Mudado de padding-bottom para height */
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  background: #f3f4f6; /* Background de fallback */
+}
+
+.thumbContainer:hover {
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+}
+
+.swiper-slide-thumb-active .thumbContainer {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.thumbImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Mantém aspect ratio mas preenche o container */
+  transition: transform 0.3s ease;
+}
+
+.thumbImage:hover {
+  transform: scale(1.1);
+}
+
+/* No Images */
+.noImages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  background: #f9fafb;
+  color: #6b7280;
+}
+
+.noImagesIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.noImages p {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .mainSwiper {
+    height: 300px;
+  }
+
+  .swiper-button-prev,
+  .swiper-button-next {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    backdrop-filter: blur(20px);
+    z-index: 20;
+    margin-top: 0;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .swiper-button-prev:hover,
+  .swiper-button-next:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    transform: scale(1.15) translateY(-2px);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.6);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+
+  .swiper-button-prev::after,
+  .swiper-button-next::after {
+    font-size: 16px;
+    color: white;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .swiper-button-prev {
+    left: 8px;
+  }
+
+  .swiper-button-next {
+    right: 8px;
+  }
+
+  .imageOverlay {
+    top: 12px;
+    left: 12px;
+    background: rgba(59, 130, 246, 0.9);
+    color: white;
+    padding: 8px 12px; /* Um pouco menor para mobile */
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .thumbsSwiper {
+    padding: 12px 24px; /* Padding lateral menor para mobile */
+    height: 80px; /* Ajustado para mobile */
+    justify-content: center;
+    align-items: center;
+  }
+
+  .thumbsSwiper .swiper-wrapper {
+    max-width: 600px; /* Largura máxima menor para mobile */
+  }
+
+  .thumbsSwiper .swiper-slide {
+    width: 25%;
+  }
+}
+
+@media (max-width: 480px) {
+  .mainSwiper {
+    height: 250px;
+  }
+
+  .swiper-button-prev,
+  .swiper-button-next {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    backdrop-filter: blur(20px);
+    z-index: 20;
+    margin-top: 0;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .swiper-button-prev:hover,
+  .swiper-button-next:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    transform: scale(1.15) translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+
+  .swiper-button-prev::after,
+  .swiper-button-next::after {
+    font-size: 14px;
+    color: white;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .swiper-button-prev {
+    left: 6px;
+  }
+
+  .swiper-button-next {
+    right: 6px;
+  }
+
+  .imageOverlay {
+    top: 8px;
+    left: 8px;
+    background: rgba(59, 130, 246, 0.9);
+    color: white;
+    padding: 6px 10px; /* Menor para mobile pequeno */
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 700;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .thumbsSwiper {
+    padding: 8px 16px; /* Padding mínimo para mobile pequeno */
+    height: 70px; /* Ajustado para mobile pequeno */
+    justify-content: center;
+    align-items: center;
+  }
+
+  .thumbsSwiper .swiper-wrapper {
+    max-width: 400px; /* Largura máxima mínima para mobile pequeno */
+  }
+
+  .thumbsSwiper .swiper-slide {
+    width: 33.33%;
+  }
+}

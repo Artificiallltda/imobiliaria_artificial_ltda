@@ -5,7 +5,7 @@ import shutil
 import uuid
 from decimal import Decimal
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from fastapi import APIRouter, Depends, HTTPException, status, File, Form, UploadFile
 from pydantic import BaseModel
@@ -57,6 +57,8 @@ class PropertyUpdate(BaseModel):
     bathrooms: Optional[int] = None
     area: Optional[float] = None
     status: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
 
 class PropertyResponse(BaseModel):
@@ -224,6 +226,9 @@ def get_property(property_id: str, db: Session = Depends(get_db)):
     if not property_obj:
         raise HTTPException(status_code=404, detail="Imóvel não encontrado")
 
+    # LOG PARA DEBUG
+    print(f"🏠 Backend - Imóvel retornado: lat={property_obj.latitude}, lng={property_obj.longitude}")
+
     return PropertyResponse(
         id=str(property_obj.id),
         title=property_obj.title,
@@ -234,6 +239,8 @@ def get_property(property_id: str, db: Session = Depends(get_db)):
         bathrooms=property_obj.bathrooms,
         area=float(property_obj.area),
         status=property_obj.status.value,
+        latitude=float(property_obj.latitude) if property_obj.latitude else None,
+        longitude=float(property_obj.longitude) if property_obj.longitude else None,
     )
 
 
@@ -283,6 +290,7 @@ async def update_property(property_id: str, property_data: PropertyUpdate, db: S
                 detail=f"Status inválido. Valores aceitos: {[s.value for s in PropertyStatus]}",
             )
 
+    # Atualizar campos do imóvel
     if property_data.title is not None:
         property_obj.title = property_data.title
     if property_data.description is not None:
@@ -348,6 +356,65 @@ async def update_property(property_id: str, property_data: PropertyUpdate, db: S
         area=float(property_obj.area),
         status=property_obj.status.value,
     )
+
+
+@router.post("/{property_id}/images", response_model=dict)
+async def upload_property_images(
+    property_id: str,
+    images: List[UploadFile] = File(...),
+    db: Session = Depends(get_db)
+):
+    """
+    Upload de imagens para um imóvel existente
+    """
+    try:
+        property_uuid = uuid.UUID(property_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="ID de imóvel inválido")
+
+    property_obj = db.query(Properties).filter(Properties.id == property_uuid).first()
+
+    if not property_obj:
+        raise HTTPException(status_code=404, detail="Imóvel não encontrado")
+
+    # Verificar se o diretório de uploads existe
+    uploads_dir = Path("uploads")
+    uploads_dir.mkdir(exist_ok=True)
+
+    # Limpar imagens existentes deste imóvel (opcional, ou comentar para adicionar)
+    from src.database.models import PropertyImages
+    db.query(PropertyImages).filter(PropertyImages.property_id == property_uuid).delete()
+
+    uploaded_images = []
+
+    for image in images:
+        # Validar se é uma imagem
+        if not image.content_type.startswith("image/"):
+            raise HTTPException(status_code=400, detail=f"Arquivo {image.filename} não é uma imagem válida")
+
+        # Gerar nome único
+        file_extension = Path(image.filename).suffix
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        file_path = uploads_dir / unique_filename
+
+        # Salvar arquivo
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(image.file, buffer)
+
+        # Salvar no banco
+        db_image = PropertyImages(
+            property_id=property_uuid,
+            image_url=f"http://127.0.0.1:8000/uploads/{unique_filename}"
+        )
+        db.add(db_image)
+        uploaded_images.append(db_image.image_url)
+
+    db.commit()
+
+    return {
+        "message": f"{len(uploaded_images)} imagens uploaded com sucesso",
+        "images": uploaded_images
+    }
 
 
 @router.delete("/{property_id}", status_code=status.HTTP_204_NO_CONTENT)

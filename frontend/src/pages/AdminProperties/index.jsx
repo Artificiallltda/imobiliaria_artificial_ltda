@@ -74,7 +74,7 @@ const AdminProperties = () => {
     };
 
     const handleViewDetails = () => {
-      navigate(`/properties/${property.id}`);
+      navigate(`/imoveis/${property.id}`);
       setIsOpen(false);
     };
 

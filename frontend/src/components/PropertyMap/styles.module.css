@@ -1,0 +1,120 @@
+.mapContainer {
+  background: transparent;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-top: 24px;
+  overflow: hidden;
+}
+
+.mapHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e5e7eb;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.mapHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.directionsButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #3b82f6;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.directionsButton:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.mapFooter {
+  padding: 16px 20px;
+  background: #f8f9fa;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: center;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.mapButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mapButton:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+}
+
+/* Ocultar elementos de atribuição do Google Maps */
+.mapWrapper :global(.gm-style-cc) {
+  display: none !important;
+}
+
+.mapWrapper :global(.gmnoprint) {
+  display: none !important;
+}
+
+.mapWrapper :global(.gm-style-cc div) {
+  display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .mapHeader {
+    padding: 12px 16px;
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .mapHeader h3 {
+    font-size: 16px;
+  }
+
+  .directionsButton {
+    justify-content: center;
+  }
+
+  .mapFooter {
+    padding: 12px 16px;
+  }
+
+  .mapButton {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -137,15 +137,23 @@ export async function getPropertyById(id) {
 
 /**
  * Cria um novo imóvel
- * @param {Object} propertyData - Dados do imóvel
+ * @param {Object|FormData} propertyData - Dados do imóvel
+ * @param {boolean} isFormData - Se os dados são FormData
  * @returns {Promise<Object>} Promise com o imóvel criado
  */
-export async function createProperty(propertyData) {
+export async function createProperty(propertyData, isFormData = false) {
   try {
+    const headers = getAuthHeaders();
+    
+    // Se for FormData, remover Content-Type para deixar o navegador definir
+    if (isFormData) {
+      delete headers['Content-Type'];
+    }
+
     const response = await fetch(`${API_BASE_URL}/properties/`, {
       method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(propertyData)
+      headers: headers,
+      body: isFormData ? propertyData : JSON.stringify(propertyData)
     });
 
     if (!response.ok) {
@@ -169,15 +177,23 @@ export async function createProperty(propertyData) {
 /**
  * Atualiza um imóvel existente
  * @param {string} id - UUID do imóvel
- * @param {Object} propertyData - Dados para atualizar
+ * @param {Object|FormData} propertyData - Dados para atualizar
+ * @param {boolean} isFormData - Se os dados são FormData
  * @returns {Promise<Object>} Promise com o imóvel atualizado
  */
-export async function updateProperty(id, propertyData) {
+export async function updateProperty(id, propertyData, isFormData = false) {
   try {
+    const headers = getAuthHeaders();
+    
+    // Se for FormData, remover Content-Type para deixar o navegador definir
+    if (isFormData) {
+      delete headers['Content-Type'];
+    }
+
     const response = await fetch(`${API_BASE_URL}/properties/${id}`, {
       method: 'PUT',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(propertyData)
+      headers: headers,
+      body: isFormData ? propertyData : JSON.stringify(propertyData)
     });
 
     if (!response.ok) {
