@@ -168,6 +168,7 @@ class Conversations(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     lead_id = Column(UUID(as_uuid=True), nullable=True)
+    assigned_to = Column(UUID(as_uuid=True), ForeignKey("Users.id", ondelete="SET NULL"), nullable=True)
 
     is_archived = Column(Boolean, nullable=False, default=False)
     is_read = Column(Boolean, nullable=False, default=False)
@@ -197,6 +198,9 @@ class Messages(Base):
 
     sender_type = Column(String(20), nullable=False)
     content = Column(Text, nullable=False)
+    status = Column(String(20), nullable=False, default='sent')
+    delivered_at = Column(DateTime, nullable=True)
+    read_at = Column(DateTime, nullable=True)
 
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
