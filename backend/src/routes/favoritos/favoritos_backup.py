@@ -66,6 +66,8 @@ class FavoriteResponse(BaseModel):
         from_attributes = True
 
 
+
+
 @router.get("/", response_model=List[FavoriteResponse])
 def list_favorites(
     current_user: Users = Depends(get_current_user),
@@ -287,99 +289,3 @@ def list_lead_favorites(
             ))
 
     return result
-
-
-@router.post("/{favorite_id}/generate-link", response_model=dict)
-def generate_public_link(
-    favorite_id: str,
-    current_user: Users = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Gerar link público para compartilhamento de favorito"""
-    # Validar UUID do favorito
-    try:
-        favorite_uuid = UUID(favorite_id)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="ID do favorito inválido")
-
-    # Buscar favorito do usuário
-    favorite = (
-        db.query(Favorites)
-        .filter(
-            Favorites.id == favorite_uuid,
-            Favorites.user_id == current_user.id
-        )
-        .first()
-    )
-
-    if not favorite:
-        raise HTTPException(status_code=404, detail="Favorito não encontrado")
-
-    # Gerar token único se ainda não existir
-    if not favorite.public_token:
-        import secrets
-        token = secrets.token_urlsafe(32)
-        
-        # Verificar se o token já existe (muito raro, mas por segurança)
-        while db.query(Favorites).filter(Favorites.public_token == token).first():
-            token = secrets.token_urlsafe(32)
-        
-        favorite.public_token = token
-        favorite.is_public = True
-        db.commit()
-
-    # Gerar URL pública
-    public_url = f"http://localhost:5173/shared/{favorite.public_token}"
-
-    return {
-        "message": "Link público gerado com sucesso",
-        "public_token": favorite.public_token,
-        "public_url": public_url
-    }
-
-
-@router.get("/public/{token}", response_model=List[FavoritePropertyResponse])
-def get_public_favorites(
-    token: str,
-    db: Session = Depends(get_db)
-):
-    """Buscar favoritos públicos através do token (sem autenticação)"""
-    # Buscar favorito pelo token público
-    favorite = (
-        db.query(Favorites)
-        .filter(
-            Favorites.public_token == token,
-            Favorites.is_public == True
-        )
-        .first()
-    )
-
-    if not favorite:
-        raise HTTPException(status_code=404, detail="Link público não encontrado ou expirou")
-
-    # Buscar dados do imóvel
-    property_obj = db.query(Properties).filter(Properties.id == favorite.property_id).first()
-    if not property_obj:
-        raise HTTPException(status_code=404, detail="Imóvel não encontrado")
-
-    return [FavoritePropertyResponse(
-        id=str(property_obj.id),
-        title=property_obj.title,
-        description=property_obj.description,
-        price=float(property_obj.price),
-        city=property_obj.city,
-        bedrooms=property_obj.bedrooms,
-        bathrooms=property_obj.bathrooms,
-        area=float(property_obj.area),
-        parking_spaces=property_obj.parking_spaces,
-        has_pool=property_obj.has_pool,
-        has_garden=property_obj.has_garden,
-        furnished=property_obj.furnished,
-        status=property_obj.status.value,
-        images=[
-            PropertyImageResponse(
-                id=str(img.id),
-                image_url=img.image_url
-            ) for img in property_obj.images
-        ]
-    )]

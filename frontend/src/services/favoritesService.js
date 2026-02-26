@@ -81,14 +81,20 @@ export async function getFavorites() {
 /**
  * Adiciona um imóvel aos favoritos
  * @param {string} propertyId - UUID do imóvel
+ * @param {string} leadId - UUID do lead (opcional)
  * @returns {Promise<Object>} Promise com { message, id }
  */
-export async function addFavorite(propertyId) {
+export async function addFavorite(propertyId, leadId = null) {
   try {
+    const body = { property_id: propertyId };
+    if (leadId) {
+      body.lead_id = leadId;
+    }
+
     const response = await fetch(`${API_BASE_URL}/favorites/`, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify({ property_id: propertyId })
+      body: JSON.stringify(body)
     });
 
     if (!response.ok) {
@@ -164,6 +170,92 @@ export async function checkFavorite(propertyId) {
     throw createHttpError(
       error?.message ||
       'Não foi possível verificar favorito. Tente novamente mais tarde.',
+      0
+    );
+  }
+}
+
+/**
+ * Busca favoritos de um lead específico
+ * @param {string} leadId - UUID do lead
+ * @returns {Promise<Array>} Promise com array de favoritos do lead
+ */
+export async function getLeadFavorites(leadId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/favorites/leads/${leadId}`, {
+      headers: getAuthHeaders()
+    });
+
+    if (!response.ok) {
+      const message = await readErrorMessage(response);
+      throw createHttpError(message, response.status);
+    }
+
+    return await response.json();
+
+  } catch (error) {
+    if (error?.status) throw error;
+
+    throw createHttpError(
+      error?.message ||
+      'Não foi possível carregar os favoritos do lead. Tente novamente mais tarde.',
+      0
+    );
+  }
+}
+
+/**
+ * Gera link público para compartilhamento de favorito
+ * @param {string} favoriteId - UUID do favorito
+ * @returns {Promise<Object>} Promise com { message, public_token, public_url }
+ */
+export async function generatePublicLink(favoriteId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/favorites/${favoriteId}/generate-link`, {
+      method: 'POST',
+      headers: getAuthHeaders()
+    });
+
+    if (!response.ok) {
+      const message = await readErrorMessage(response);
+      throw createHttpError(message, response.status);
+    }
+
+    return await response.json();
+
+  } catch (error) {
+    if (error?.status) throw error;
+
+    throw createHttpError(
+      error?.message ||
+      'Não foi possível gerar link público. Tente novamente mais tarde.',
+      0
+    );
+  }
+}
+
+/**
+ * Busca favoritos públicos através do token (sem autenticação)
+ * @param {string} token - Token público
+ * @returns {Promise<Array>} Promise com array de imóveis públicos
+ */
+export async function getPublicFavorites(token) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/favorites/public/${token}`);
+
+    if (!response.ok) {
+      const message = await readErrorMessage(response);
+      throw createHttpError(message, response.status);
+    }
+
+    return await response.json();
+
+  } catch (error) {
+    if (error?.status) throw error;
+
+    throw createHttpError(
+      error?.message ||
+      'Não foi possível carregar os favoritos públicos. Tente novamente mais tarde.',
       0
     );
   }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Button, Card, Modal, Select, StatusTag, useToast } from '../../components/ui/index.js'
 import Conversation from '../../components/Leads/Conversation/index.jsx'
+import LeadFavorites from '../../components/LeadFavorites/index.jsx'
 import { getLeadById, updateLead } from '../../services/leadsService.js'
 import { useI18n } from '../../i18n/index.jsx'
 import styles from './styles.module.css'
@@ -258,6 +259,8 @@ export default function LeadDetail() {
           </div>
         </div>
       </Card>
+
+      <LeadFavorites leadId={lead.id} />
 
       <Modal
         open={isConvertModalOpen}

@@ -202,12 +202,27 @@ class Favorites(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("Users.id", ondelete="CASCADE"), nullable=False)
     property_id = Column(UUID(as_uuid=True), ForeignKey("properties.id", ondelete="CASCADE"), nullable=False)
+    lead_id = Column(UUID(as_uuid=True), ForeignKey("leads.id", ondelete="CASCADE"), nullable=True)
+    is_public = Column(Boolean, nullable=False, default=False)
+    public_token = Column(String(100), nullable=True, unique=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
     __table_args__ = (
-        # Constraint única: um usuário não pode favoritar o mesmo imóvel duas vezes
-        UniqueConstraint('user_id', 'property_id', name='uq_user_property_favorite'),
+        # Constraint única: um usuário não pode favoritar o mesmo imóvel duas vezes para o mesmo lead
+        UniqueConstraint('user_id', 'property_id', 'lead_id', name='uq_user_property_lead_favorite'),
     )
+
+
+class PriceAlerts(Base):
+    """Modelo para alertas de mudança de preço"""
+    __tablename__ = "price_alerts"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("Users.id", ondelete="CASCADE"), nullable=False)
+    property_id = Column(UUID(as_uuid=True), ForeignKey("properties.id", ondelete="CASCADE"), nullable=False)
+    old_price = Column(Numeric(12, 2), nullable=False)
+    new_price = Column(Numeric(12, 2), nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
 
 class UserSettings(Base):
