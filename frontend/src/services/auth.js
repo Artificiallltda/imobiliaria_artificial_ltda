@@ -46,3 +46,12 @@ export function logout() {
     localStorage.removeItem(AUTH_USER_KEY)
   } catch {}
 }
+
+export function getCurrentUser() {
+  try {
+    const userStr = localStorage.getItem(AUTH_USER_KEY)
+    return userStr ? JSON.parse(userStr) : null
+  } catch {
+    return null
+  }
+}

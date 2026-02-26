@@ -13,16 +13,30 @@ import PropertyDetail from './pages/PropertyDetail/index.jsx'
 import Settings from './pages/Settings/index.jsx'
 import AdminProperties from './pages/AdminProperties/index.jsx'
 import AdminPropertyForm from './pages/AdminPropertyForm/index.jsx'
-import { isAuthenticated, logout as doLogout } from './services/auth.js'
+import PublicFavorites from './pages/PublicFavorites/index.jsx'
+import { isAuthenticated, logout as doLogout, getCurrentUser } from './services/auth.js'
 import { useTheme } from './context/ThemeContext.jsx'
 import { useI18n } from './i18n/index.jsx'
+import { useWebSocket } from './hooks/useWebSocket.js'
 
 function App() {
   const [auth, setAuth] = useState(false)
+  const { toast } = useToast()
 
   useEffect(() => {
     setAuth(isAuthenticated())
   }, [])
+
+  // Conectar WebSocket quando autenticado
+  useEffect(() => {
+    if (auth) {
+      const user = getCurrentUser()
+      if (user && user.id) {
+        // WebSocket será conectado automaticamente pelo hook
+        console.log('Usuário autenticado, WebSocket pronto para conectar')
+      }
+    }
+  }, [auth])
 
   // TODO: Migrar este controle simples de auth para ProtectedRoute e/ou AuthContext.
   if (!auth) {
@@ -32,6 +46,9 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Rota pública - fora da autenticação */}
+        <Route path="/shared/:token" element={<PublicFavorites />} />
+        
         <Route element={<AppLayout onLogout={() => setAuth(false)} />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
@@ -73,6 +90,10 @@ function AppLayout({ onLogout }) {
 
   const { theme, toggleTheme } = useTheme()
   const { t, locale, setLocale } = useI18n()
+  
+  // Conectar WebSocket para notificações em tempo real
+  const user = getCurrentUser()
+  const { isConnected } = useWebSocket(user?.id)
 
   useEffect(() => {
     const onResize = () => {

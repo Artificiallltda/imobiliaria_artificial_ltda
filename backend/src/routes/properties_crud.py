@@ -13,7 +13,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 
 from src.database.db import SessionLocal
-from src.database.models import Properties, PropertyStatus
+from src.database.models import Properties, PropertyStatus, Favorites, PriceAlerts
+from src.websocket.manager import manager
 
 # Router para endpoints de CRUD de imóveis
 router = APIRouter(prefix="/properties", tags=["CRUD Imóveis"])
@@ -237,7 +238,7 @@ def get_property(property_id: str, db: Session = Depends(get_db)):
 
 
 @router.put("/{property_id}", response_model=PropertyResponse)
-def update_property(property_id: str, property_data: PropertyUpdate, db: Session = Depends(get_db)):
+async def update_property(property_id: str, property_data: PropertyUpdate, db: Session = Depends(get_db)):
     """
     Atualizar um imóvel existente (Admin/Gestor)
     """
@@ -287,7 +288,43 @@ def update_property(property_id: str, property_data: PropertyUpdate, db: Session
     if property_data.description is not None:
         property_obj.description = property_data.description
     if property_data.price is not None:
-        property_obj.price = Decimal(str(property_data.price))
+        old_price = property_obj.price
+        new_price = Decimal(str(property_data.price))
+        
+        # Verificar se o preço mudou
+        if old_price != new_price:
+            # Buscar usuários que favoritaram este imóvel
+            favorited_users = db.query(Favorites).filter(Favorites.property_id == property_uuid).all()
+            
+            # Criar alertas de preço para cada usuário e enviar notificações
+            for favorite in favorited_users:
+                # Criar alerta no banco
+                alert = PriceAlerts(
+                    user_id=favorite.user_id,
+                    property_id=property_uuid,
+                    old_price=old_price,
+                    new_price=new_price
+                )
+                db.add(alert)
+                
+                # Enviar notificação WebSocket
+                notification = {
+                    "type": "price_update",
+                    "data": {
+                        "property_id": str(property_uuid),
+                        "property_title": property_obj.title,
+                        "old_price": float(old_price),
+                        "new_price": float(new_price),
+                        "price_change": float(new_price - old_price),
+                        "price_change_percent": float(round(((new_price - old_price) / old_price) * 100, 2))
+                    }
+                }
+                
+                # Enviar para o usuário via WebSocket
+                import json
+                await manager.send_personal_message(json.dumps(notification), str(favorite.user_id))
+        
+        property_obj.price = new_price
     if property_data.city is not None:
         property_obj.city = property_data.city
     if property_data.bedrooms is not None:

@@ -5,7 +5,7 @@ import Gallery from '../../components/Properties/Gallery/index.jsx';
 import styles from './styles.module.css';
 
 import { getPropertyById } from '../../services/propertiesService';
-import { addFavorite, removeFavorite, checkFavorite } from '../../services/favoritesService';
+import { addFavorite, removeFavorite, checkFavorite, generatePublicLink } from '../../services/favoritesService';
 import { formatPriceBRL, getStatusLabel, getStatusTone } from '../../utils/propertyUtils';
 
 const PropertyDetail = () => {
@@ -19,6 +19,8 @@ const PropertyDetail = () => {
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [isLoadingFavorite, setIsLoadingFavorite] = useState(false);
+  const [favoriteId, setFavoriteId] = useState(null);
+  const [isSharing, setIsSharing] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -87,14 +89,16 @@ const PropertyDetail = () => {
       if (isFavorited) {
         await removeFavorite(id);
         setIsFavorited(false);
+        setFavoriteId(null);
         // Toast de sucesso ao remover
         toast({
           type: 'success',
           message: 'Imóvel removido dos favoritos',
         });
       } else {
-        await addFavorite(id);
+        const result = await addFavorite(id);
         setIsFavorited(true);
+        setFavoriteId(result.id);
         // Toast de sucesso ao adicionar
         toast({
           type: 'success',
@@ -118,6 +122,30 @@ const PropertyDetail = () => {
       }
     } finally {
       setIsLoadingFavorite(false);
+    }
+  };
+
+  const handleShareFavorite = async () => {
+    if (!favoriteId || isSharing) return;
+
+    setIsSharing(true);
+    try {
+      const result = await generatePublicLink(favoriteId);
+      
+      // Copiar link para clipboard
+      await navigator.clipboard.writeText(result.public_url);
+      
+      toast({
+        type: 'success',
+        message: 'Link copiado com sucesso! Compartilhe com seus clientes.',
+      });
+    } catch (err) {
+      toast({
+        type: 'error',
+        message: 'Erro ao gerar link de compartilhamento. Tente novamente.',
+      });
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -329,6 +357,16 @@ const PropertyDetail = () => {
                   title={isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}
                 >
                   {isFavorited ? '❤️' : '🤍'} {isFavorited ? 'Favoritado' : 'Favoritar'}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className={styles.shareButton}
+                  onClick={handleShareFavorite}
+                  disabled={!isFavorited || isSharing}
+                  title="Compartilhar imóvel favorito"
+                >
+                  {isSharing ? '🔄 Gerando...' : '🔗 Compartilhar'}
                 </Button>
               </div>
 
