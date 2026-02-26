@@ -88,11 +88,76 @@
   display: none !important;
 }
 
-.mapWrapper :global(.gm-style-cc div) {
-  display: none !important;
+.mapLoading {
+  padding: 40px 20px;
+  text-align: center;
+  background: #f8fafc;
+  border-radius: 12px;
 }
 
-/* Responsive */
+.mapLoadingIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  animation: spin 2s linear infinite;
+}
+
+.mapLoading p {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.mapError {
+  padding: 40px 20px;
+  text-align: center;
+  background: #fef2f2;
+  border-radius: 12px;
+  border: 1px solid #fecaca;
+}
+
+.mapErrorIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.mapError p {
+  font-size: 16px;
+  font-weight: 600;
+  color: #dc2626;
+  margin-bottom: 8px;
+}
+
+.mapError small {
+  color: #991b1b;
+  font-size: 14px;
+}
+
+.mapPlaceholder {
+  padding: 40px 20px;
+  text-align: center;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 2px dashed #cbd5e1;
+}
+
+.mapPlaceholderIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  color: #94a3b8;
+}
+
+.mapPlaceholder p {
+  font-size: 16px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.mapPlaceholder small {
+  color: #94a3b8;
+  font-size: 14px;
+}
 @media (max-width: 768px) {
   .mapHeader {
     padding: 12px 16px;
@@ -109,12 +174,16 @@
     justify-content: center;
   }
 
+  .mapButton {
+    width: 100%;
+    justify-content: center;
+  }
+
   .mapFooter {
     padding: 12px 16px;
   }
 
-  .mapButton {
-    width: 100%;
-    justify-content: center;
+  .mapWrapper iframe {
+    height: 300px;
   }
 }

@@ -1,0 +1,67 @@
+.chartContainer {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.chartContainer:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.loading,
+.noData {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  color: #64748b;
+  font-style: italic;
+  gap: 16px;
+}
+
+.loading::before {
+  content: '⏳';
+  font-size: 48px;
+  animation: spin 2s linear infinite;
+}
+
+.noData::before {
+  content: '📊';
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.chartWrapper {
+  height: 400px;
+  position: relative;
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.noData p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .chartContainer {
+    padding: 16px;
+  }
+  
+  .chartWrapper {
+    height: 250px;
+  }
+}
+
+/* Removido dark mode automático - LeadsChart sempre em tema claro */
