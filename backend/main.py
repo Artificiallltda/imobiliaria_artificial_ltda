@@ -16,15 +16,16 @@ from src.routes.leads.leads import router as leads_router
 from src.routes.properties import router as properties_router
 from src.routes.properties_crud import router as properties_crud_router
 from src.routes.settings import router as settings_router
-from src.routes.dashboard import router as dashboard_router  # ✅ NOVO
+from src.routes.dashboard import router as dashboard_router
+from src.routes.widget import router as widget_router
 from src.websocket.routes import router as websocket_router
 
 app = FastAPI(title="API Imobiliária", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -34,7 +35,11 @@ BASE_DIR = Path(__file__).resolve().parent  # backend/
 UPLOADS_DIR = BASE_DIR / "uploads"
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
+WIDGET_DIR = BASE_DIR.parent / "widget"
+
 app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
+if WIDGET_DIR.exists():
+    app.mount("/widget", StaticFiles(directory=str(WIDGET_DIR)), name="widget")
 
 # Incluir rotas
 app.include_router(properties_router)
@@ -47,6 +52,7 @@ app.include_router(websocket_router)
 
 # ✅ Incluir rotas de dashboard
 app.include_router(dashboard_router)
+app.include_router(widget_router)
 
 
 class LoginPayload(BaseModel):

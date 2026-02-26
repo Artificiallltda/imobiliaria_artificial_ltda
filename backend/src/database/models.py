@@ -66,10 +66,6 @@ class Properties(Base):
         default=PropertyStatus.AVAILABLE
     )
 
-    # Campos de localização para mapa
-    latitude = Column(Numeric(precision=10, scale=8), nullable=True)
-    longitude = Column(Numeric(precision=11, scale=8), nullable=True)
-
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -116,6 +112,8 @@ class Leads(Base):
 
     source = Column(String(100), nullable=True)
     property_id = Column(UUID(as_uuid=True), ForeignKey("properties.id"), nullable=True)
+    property_title = Column(String(255), nullable=True)
+    property_url = Column(Text, nullable=True)
     is_archived = Column(Boolean, nullable=False, default=False)
     
     # Controle de tempo
@@ -124,10 +122,6 @@ class Leads(Base):
     converted_at = Column(DateTime, nullable=True)
     qualified_at = Column(DateTime, nullable=True)
     lost_at = Column(DateTime, nullable=True)
-    
-    # Campos para dashboard avançado
-    value = Column(Numeric(precision=15, scale=2), nullable=True)  # Valor do imóvel/negócio
-    assigned_to = Column(UUID(as_uuid=True), ForeignKey("Users.id"), nullable=True)  # Corretor responsável
 
 
 class LeadMessages(Base):
