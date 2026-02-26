@@ -213,7 +213,7 @@ export default {
 },
   messages: {
   title: 'Mensagens',
-  subtitle: 'Conversas simuladas (mock).',
+  subtitle: 'Gerencie suas conversas em tempo real.',
   viewChat: 'Ver chat',
 
   empty: {

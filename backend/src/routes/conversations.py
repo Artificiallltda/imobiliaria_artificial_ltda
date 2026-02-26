@@ -7,7 +7,8 @@ from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 
 from src.database.db import SessionLocal
-from src.database.models import Conversations, Messages
+from src.database.models import Conversations, Messages, Leads
+from src.websocket.manager import manager
 
 router = APIRouter(prefix="/conversations", tags=["Conversations"])
 
@@ -26,6 +27,7 @@ def get_db():
 # ---------- Schemas ----------
 class ConversationOut(BaseModel):
     id: UUID
+    lead_name: str | None = None
     last_message: str | None = None
     last_message_at: datetime | None = None
     is_archived: bool
@@ -68,6 +70,7 @@ def list_conversations(db: Session = Depends(get_db)):
             Conversations,
             Messages.content,
             Messages.created_at,
+            Leads.name,
         )
         .outerjoin(sub, sub.c.conversation_id == Conversations.id)
         .outerjoin(
@@ -75,19 +78,21 @@ def list_conversations(db: Session = Depends(get_db)):
             (Messages.conversation_id == Conversations.id)
             & (Messages.created_at == sub.c.last_message_at),
         )
+        .outerjoin(Leads, Leads.id == Conversations.lead_id)
         .order_by(desc(Conversations.updated_at))
     )
 
     return [
         ConversationOut(
             id=conv.id,
+            lead_name=lead_name,
             last_message=last_content,
             last_message_at=last_at,
             is_archived=conv.is_archived,
             is_read=conv.is_read,
             unread_count=conv.unread_count,
         )
-        for conv, last_content, last_at in q.all()
+        for conv, last_content, last_at, lead_name in q.all()
     ]
 
 
@@ -107,7 +112,7 @@ def list_messages(conversation_id: UUID, db: Session = Depends(get_db)):
 
 
 @router.post("/{conversation_id}/messages", response_model=MessageOut)
-def send_message(conversation_id: UUID, payload: MessageCreate, db: Session = Depends(get_db)):
+async def send_message(conversation_id: UUID, payload: MessageCreate, db: Session = Depends(get_db)):
 
     conv = db.query(Conversations).filter(Conversations.id == conversation_id).first()
     if not conv:
@@ -123,7 +128,6 @@ def send_message(conversation_id: UUID, payload: MessageCreate, db: Session = De
     )
     db.add(msg)
 
-    # 🔥 LÓGICA DE CONTADOR
     if payload.sender_type == "cliente":
         conv.unread_count += 1
         conv.is_read = False
@@ -132,6 +136,21 @@ def send_message(conversation_id: UUID, payload: MessageCreate, db: Session = De
 
     db.commit()
     db.refresh(msg)
+
+    await manager.send_conversation_message(
+        {
+            "type": "new_message",
+            "message": {
+                "id": str(msg.id),
+                "conversation_id": str(msg.conversation_id),
+                "sender_type": msg.sender_type,
+                "content": msg.content,
+                "created_at": msg.created_at.isoformat(),
+            },
+        },
+        str(conversation_id),
+    )
+
     return msg
 
 
