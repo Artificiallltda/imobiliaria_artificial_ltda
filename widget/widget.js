@@ -16,6 +16,7 @@
   let conversationId = null
   let socket = null
   let isOpen = false
+  const shownIds = new Set()
 
   // ─── CSS ───────────────────────────────────────────────────────────────────
   const style = document.createElement('style')
@@ -81,7 +82,8 @@
     <div class="wgt-typing" id="wgt-typing">Atendente está digitando...</div>
     <div class="wgt-footer" id="wgt-footer">
       <input type="text" id="wgt-msg-input" placeholder="Digite sua mensagem..." />
-      <label title="Enviar arquivo">📎<input type="file" id="wgt-file-input" style="display:none" /></label>
+      <button id="wgt-upload-btn" title="Enviar arquivo" style="background:#f1f5f9;color:#334155;">📎</button>
+      <input type="file" id="wgt-file-input" style="display:none" />
       <button id="wgt-send-btn">➤</button>
     </div>
   `
@@ -150,6 +152,10 @@
   document.getElementById('wgt-send-btn').addEventListener('click', sendMessage)
   document.getElementById('wgt-msg-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage() })
 
+  document.getElementById('wgt-upload-btn').addEventListener('click', () => {
+    document.getElementById('wgt-file-input').click()
+  })
+
   // ─── Upload de arquivo ─────────────────────────────────────────────────────
   document.getElementById('wgt-file-input').addEventListener('change', async (e) => {
     const file = e.target.files[0]
@@ -174,6 +180,8 @@
   }
 
   function appendMessage(msg) {
+    if (msg.id && shownIds.has(msg.id)) return
+    if (msg.id) shownIds.add(msg.id)
     const container = document.getElementById('wgt-messages')
     const div = document.createElement('div')
     div.className = `wgt-bubble ${msg.sender_type}`
@@ -201,7 +209,7 @@
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data)
-        if (data.type === 'new_message' && data.message.sender_type !== 'cliente') {
+        if (data.type === 'new_message') {
           appendMessage(data.message)
         }
         if (data.type === 'user_typing' && data.sender_type === 'corretor') {
