@@ -1,16 +1,18 @@
 // src/components/Dashboard/StatCard.jsx
+import styles from './StatCard.module.css';
+
 export default function StatCard({ icon, label, value, tone = "primary" }) {
   return (
-    <div className={`stat-card stat-${tone}`}>
-      <div className="stat-top">
-        <div className="stat-icon" aria-hidden="true">
+    <div className={`${styles.statCard} ${styles[`stat${tone.charAt(0).toUpperCase() + tone.slice(1)}`]}`}>
+      <div className={styles.statTop}>
+        <div className={styles.statIcon} aria-hidden="true">
           {icon}
         </div>
-        <span className="stat-label">{label}</span>
+        <span className={styles.statLabel}>{label}</span>
       </div>
 
-      <div className="stat-value">{value}</div>
-      <div className="stat-foot">Atualizado automaticamente</div>
+      <div className={styles.statValue}>{value}</div>
+      <div className={styles.statFoot}>Atualizado automaticamente</div>
     </div>
   );
 }

@@ -124,6 +124,10 @@ class Leads(Base):
     converted_at = Column(DateTime, nullable=True)
     qualified_at = Column(DateTime, nullable=True)
     lost_at = Column(DateTime, nullable=True)
+    
+    # Campos para dashboard avançado
+    value = Column(Numeric(precision=15, scale=2), nullable=True)  # Valor do imóvel/negócio
+    assigned_to = Column(UUID(as_uuid=True), ForeignKey("Users.id"), nullable=True)  # Corretor responsável
 
 
 class LeadMessages(Base):

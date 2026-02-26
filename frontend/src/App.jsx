@@ -4,6 +4,7 @@ import { Button, Card, Input, Modal, Select, StatusTag, useToast } from './compo
 import Sidebar from './components/Sidebar.jsx'
 import { MenuIcon, SettingsIcon } from './components/Icons/index.jsx'
 import Login from './pages/login/index.jsx'
+import Dashboard from './pages/login/Dashboard.jsx'
 import Leads from './pages/Leads/index.jsx'
 import LeadDetail from './pages/LeadDetail/index.jsx'
 import Favorites from './pages/Favorites.jsx'
@@ -52,7 +53,7 @@ function App() {
         <Route element={<AppLayout onLogout={() => setAuth(false)} />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/dashboard" element={<Dashboard />} />
 
           {/* Leads (NÃO REMOVER) */}
           <Route path="/leads" element={<Leads />} />
@@ -227,103 +228,3 @@ function SimplePage({ title }) {
   )
 }
 
-function DashboardPage() {
-  const { toast } = useToast()
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
-
-  const selectOptions = useMemo(
-    () => [
-      { value: '1', label: 'Opção 1' },
-      { value: '2', label: 'Opção 2' },
-      { value: '3', label: 'Opção 3' },
-    ],
-    [],
-  )
-
-  return (
-    <>
-      <section className="search-section">
-        <h2>Encontrar Imóvel</h2>
-
-        <div className="search-grid">
-          <Input placeholder="Localização" />
-          <Input placeholder="Preço mín." />
-          <Input placeholder="Preço máx." />
-          <Input placeholder="Km máx." />
-          <Select placeholder="Tipo" defaultValue="" options={selectOptions} />
-          <Select placeholder="Quartos" defaultValue="" options={selectOptions} />
-          <Select placeholder="Banheiros" defaultValue="" options={selectOptions} />
-          <Select placeholder="Cidade" defaultValue="" options={selectOptions} />
-          <Select placeholder="País" defaultValue="" options={selectOptions} />
-
-          <Button
-            className="btn-search"
-            onClick={() => toast({ type: 'success', message: 'Busca iniciada (mock).' })}
-          >
-            Buscar
-          </Button>
-        </div>
-      </section>
-
-      <section className="listings-section">
-        <div className="listings-header">
-          <h2>Imóveis Disponíveis</h2>
-          <span className="results-count">0 encontrados</span>
-          <Button variant="outline" className="btn-filter" onClick={() => setIsFilterModalOpen(true)}>
-            Filtrar por
-          </Button>
-        </div>
-
-        <div className="property-cards">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="property-card">
-              <div className="card-image">
-                <div className="img-placeholder" />
-                <StatusTag status="active" className="badge">
-                  Ativo
-                </StatusTag>
-              </div>
-
-              <div className="card-content">
-                <h3>Imóvel exemplo {i}</h3>
-                <p className="card-location">Cidade, Estado • há pouco</p>
-                <p className="card-price">R$ 0,00</p>
-                <p className="card-details">— quartos • — banheiros • — m²</p>
-                <p className="card-desc">Descrição do imóvel.</p>
-
-                <div className="card-actions">
-                  <Button variant="outline">Favoritar</Button>
-                  <Button>Fazer Oferta</Button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <Modal
-        open={isFilterModalOpen}
-        title="Filtros"
-        onClose={() => setIsFilterModalOpen(false)}
-        actions={
-          <>
-            <Button variant="outline" onClick={() => setIsFilterModalOpen(false)}>
-              Cancelar
-            </Button>
-            <Button
-              onClick={() => {
-                // TODO - Aplicar filtros e busca via backend quando a API estiver disponível
-                setIsFilterModalOpen(false)
-                toast({ type: 'warning', message: 'Filtros aplicados (mock).' })
-              }}
-            >
-              Aplicar
-            </Button>
-          </>
-        }
-      >
-        Ajuste seus filtros e clique em &quot;Aplicar&quot;.
-      </Modal>
-    </>
-  )
-}
