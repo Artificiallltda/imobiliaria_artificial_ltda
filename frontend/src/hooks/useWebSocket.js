@@ -31,11 +31,20 @@ export function useWebSocket(userId) {
     };
 
     const handleError = (error) => {
-      console.error('Erro WebSocket:', error);
-      toast({
-        type: 'error',
-        message: 'Erro na conexão de notificações em tempo real'
-      });
+      // Verificar se é um erro real ou apenas uma desconexão normal
+      const isRealError = error.type !== 'close' && 
+                         error.code !== 1000 && 
+                         error.code !== 1001 &&
+                         error.type !== 'error';
+      
+      if (isRealError) {
+        console.error('Erro WebSocket:', error);
+        toast({
+          type: 'error',
+          message: 'Erro na conexão de notificações em tempo real',
+          duration: 5000
+        });
+      }
     };
 
     const handlePriceUpdate = (message) => {

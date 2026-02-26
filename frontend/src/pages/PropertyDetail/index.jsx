@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Button, StatusTag, Modal, useToast } from '../../components/ui/index.js';
-import Gallery from '../../components/Properties/Gallery/index.jsx';
+import PropertyGallery from '../../components/PropertyGallery/index.jsx';
+import PropertyMap from '../../components/PropertyMap/index.jsx';
+import WhatsAppShare from '../../components/WhatsAppShare/index.jsx';
 import styles from './styles.module.css';
 
 import { getPropertyById } from '../../services/propertiesService';
@@ -32,6 +34,7 @@ const PropertyDetail = () => {
       try {
         const data = await getPropertyById(id);
         if (!alive) return;
+        
         setProperty(data);
 
         // Verificar se está nos favoritos
@@ -149,17 +152,6 @@ const PropertyDetail = () => {
     }
   };
 
-  // Adapta imagens do backend para o formato do Gallery (provável { url, alt, thumbnail })
-  const galleryImages = useMemo(() => {
-    const imgs = Array.isArray(property?.images) ? property.images : [];
-    return imgs.map((img, idx) => ({
-      id: img.id ?? String(idx),
-      url: img.image_url,
-      alt: property?.title ? `Imagem do imóvel - ${property.title}` : "Imagem do imóvel",
-      thumbnail: img.image_url,
-    }));
-  }, [property]);
-
   // Fallbacks para campos que o backend ainda não retorna
   const safeFeatures = Array.isArray(property?.features) ? property.features : [];
   const safeNearbyPlaces = Array.isArray(property?.nearbyPlaces) ? property.nearbyPlaces : [];
@@ -250,9 +242,9 @@ const PropertyDetail = () => {
       </div>
 
       <div className={styles.content}>
-        {/* Galeria de imagens */}
+        {/* Galeria de imagens com Swiper */}
         <div className={styles.gallerySection}>
-          <Gallery images={galleryImages} />
+          <PropertyGallery images={property.images} />
         </div>
 
         {/* Card único com todas as informações */}
@@ -397,6 +389,22 @@ const PropertyDetail = () => {
                 ))}
             </div>
           </div>
+
+          {/* Divider */}
+          <div className={styles.divider}></div>
+
+          {/* Mapa do Imóvel */}
+          <PropertyMap 
+            latitude={property.latitude} 
+            longitude={property.longitude} 
+            title={property.title}
+          />
+
+          {/* Divider */}
+          <div className={styles.divider}></div>
+
+          {/* Compartilhamento WhatsApp */}
+          <WhatsAppShare property={property} />
 
           {/* Divider */}
           <div className={styles.divider}></div>

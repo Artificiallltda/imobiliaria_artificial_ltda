@@ -251,6 +251,44 @@
   border-color: var(--success-border, #c3e6cb);
 }
 
+/* Estilos para campos de imagens */
+.helpText {
+  display: block;
+  margin-top: 5px;
+  color: #666;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.imagePreview {
+  margin-top: 10px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+}
+
+.imagePreview p {
+  margin: 0;
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Dark mode para campos de imagens */
+:global(.dark) .helpText {
+  color: #b0b0b0;
+}
+
+:global(.dark) .imagePreview {
+  background: #2a2a2a;
+  border-color: #333;
+}
+
+:global(.dark) .imagePreview p {
+  color: #e0e0e0;
+}
+
 :global(.dark) .submitButton {
   background-color: var(--primary-color, #007bff);
 }

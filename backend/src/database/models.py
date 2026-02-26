@@ -66,6 +66,10 @@ class Properties(Base):
         default=PropertyStatus.AVAILABLE
     )
 
+    # Campos de localização para mapa
+    latitude = Column(Numeric(precision=10, scale=8), nullable=True)
+    longitude = Column(Numeric(precision=11, scale=8), nullable=True)
+
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 

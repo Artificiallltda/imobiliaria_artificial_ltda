@@ -25,12 +25,15 @@ function AdminPropertyForm() {
     bedrooms: '',
     bathrooms: '',
     area: '',
-    status: 'AVAILABLE'
+    status: 'AVAILABLE',
+    latitude: '',
+    longitude: ''
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [images, setImages] = useState([]);
 
   // Carrega dados do imóvel se estiver em modo edição
   useEffect(() => {
@@ -57,7 +60,9 @@ function AdminPropertyForm() {
         bedrooms: property.bedrooms || '',
         bathrooms: property.bathrooms || '',
         area: property.area || '',
-        status: property.status || 'AVAILABLE'
+        status: property.status || 'AVAILABLE',
+        latitude: property.latitude || '',
+        longitude: property.longitude || ''
       });
       
     } catch (err) {
@@ -89,6 +94,7 @@ function AdminPropertyForm() {
       setError('');
       setSuccess('');
 
+      // Adicionar coordenadas ao objeto
       const propertyData = {
         title: formData.title.trim(),
         description: formData.description.trim(),
@@ -100,13 +106,49 @@ function AdminPropertyForm() {
         status: formData.status
       };
 
+      // Adicionar coordenadas se existirem
+      if (formData.latitude) {
+        propertyData.latitude = parseFloat(formData.latitude);
+      }
+      if (formData.longitude) {
+        propertyData.longitude = parseFloat(formData.longitude);
+      }
+
+      // 1. Salvar dados do imóvel
       if (isEditing) {
         await updateProperty(id, propertyData);
-        setSuccess('Imóvel atualizado com sucesso!');
       } else {
         await createProperty(propertyData);
-        setSuccess('Imóvel criado com sucesso!');
       }
+
+      // 2. Se houver imagens, fazer upload separado
+      if (images.length > 0 && isEditing) {
+        const formDataImages = new FormData();
+        images.forEach((image) => {
+          formDataImages.append('images', image);
+        });
+
+        try {
+          const response = await fetch(`http://127.0.0.1:8000/properties/${id}/images`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            },
+            body: formDataImages
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Erro ao fazer upload das imagens');
+          }
+        } catch (uploadError) {
+          console.error('Erro no upload de imagens:', uploadError);
+          setError('Dados salvos, mas houve erro no upload das imagens. Tente novamente.');
+          return;
+        }
+      }
+
+      setSuccess(isEditing ? 'Imóvel atualizado com sucesso!' : 'Imóvel criado com sucesso!');
 
       // Redireciona após 2 segundos
       setTimeout(() => {
@@ -280,6 +322,64 @@ function AdminPropertyForm() {
               <option value="RESERVED">Reservado</option>
               <option value="SOLD">Vendido</option>
             </select>
+          </div>
+        </div>
+
+        {/* Campo de Imagens */}
+        <div className={styles.formGroup}>
+          <label className={styles.label}>
+            📸 Imagens do Imóvel
+          </label>
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={(e) => setImages(Array.from(e.target.files))}
+            className={styles.input}
+            disabled={loading}
+          />
+          <small className={styles.helpText}>
+            Selecione uma ou mais imagens (JPG, PNG, WebP)
+          </small>
+          {images.length > 0 && (
+            <div className={styles.imagePreview}>
+              <p>{images.length} imagem(ns) selecionada(s)</p>
+            </div>
+          )}
+        </div>
+
+        {/* Campos de Coordenadas */}
+        <div className={styles.formRow}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>
+              📍 Latitude (opcional)
+            </label>
+            <input
+              type="number"
+              name="latitude"
+              value={formData.latitude}
+              onChange={handleChange}
+              className={styles.input}
+              placeholder="-23.5505"
+              step="0.00000001"
+              disabled={loading}
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.label}>
+              📍 Longitude (opcional)
+            </label>
+            <input
+              type="number"
+              name="longitude"
+              value={formData.longitude}
+              onChange={handleChange}
+              className={styles.input}
+              placeholder="-46.6333"
+              step="0.00000001"
+              disabled={loading}
+            />
           </div>
         </div>
 

@@ -56,20 +56,40 @@ class WebSocketService {
         this.stopHeartbeat();
         this.emit('disconnected', { code: event.code, reason: event.reason });
         
-        // Tentar reconectar automaticamente
-        if (this.reconnectAttempts < this.maxReconnectAttempts) {
-          this.scheduleReconnect();
+        // Só tentar reconectar se não for um fechamento normal
+        if (event.code !== 1000 && event.code !== 1001) {
+          if (this.reconnectAttempts < this.maxReconnectAttempts) {
+            this.scheduleReconnect();
+          }
         }
       };
 
       this.ws.onerror = (error) => {
-        console.error('Erro WebSocket:', error);
-        this.emit('error', error);
+        // Verificar se é um erro real ou apenas uma desconexão normal
+        const isRealError = error.type !== 'close' && 
+                           error.code !== 1000 && 
+                           error.code !== 1001 &&
+                           error.type !== 'error';
+        
+        if (isRealError) {
+          console.error('Erro WebSocket:', error);
+          this.emit('error', error);
+        }
       };
 
     } catch (error) {
-      console.error('Erro ao criar conexão WebSocket:', error);
-      this.emit('error', error);
+      // Verificar se é um erro real ou apenas falha de conexão normal
+      const isRealError = error.code !== 'ECONNREF' && 
+                         error.code !== 'ECONNRESET' &&
+                         !error.message.includes('Failed to connect');
+      
+      if (isRealError) {
+        console.error('Erro ao criar conexão WebSocket:', error);
+        this.emit('error', error);
+      } else {
+        // Falha de conexão normal - tentará reconectar automaticamente
+        console.log('WebSocket não disponível, tentando reconectar...');
+      }
     }
   }
 
@@ -176,7 +196,11 @@ class WebSocketService {
    */
   scheduleReconnect() {
     this.reconnectAttempts++;
-    console.log(`Tentando reconectar em ${this.reconnectInterval / 1000} segundos... (Tentativa ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+    
+    // Só mostrar mensagem de reconexão se não for a primeira tentativa
+    if (this.reconnectAttempts > 1) {
+      console.log(`Tentando reconectar em ${this.reconnectInterval / 1000} segundos... (Tentativa ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+    }
     
     setTimeout(() => {
       if (this.userId) {
