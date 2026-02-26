@@ -15,7 +15,6 @@ router = APIRouter(prefix="/conversations", tags=["Conversations"])
 ALLOWED_SENDER_TYPES = {"corretor", "cliente", "sistema"}
 
 
-# ---------- DB Dependency ----------
 def get_db():
     db = SessionLocal()
     try:
@@ -25,6 +24,7 @@ def get_db():
 
 
 # ---------- Schemas ----------
+
 class ConversationOut(BaseModel):
     id: UUID
     lead_name: str | None = None
@@ -33,6 +33,7 @@ class ConversationOut(BaseModel):
     is_archived: bool
     is_read: bool
     unread_count: int
+    assigned_to: UUID | None = None
 
 
 class MessageCreate(BaseModel):
@@ -45,17 +46,23 @@ class MessageOut(BaseModel):
     conversation_id: UUID
     sender_type: str
     content: str
+    status: str = "sent"
+    delivered_at: datetime | None = None
+    read_at: datetime | None = None
     created_at: datetime
 
     class Config:
         from_attributes = True
 
 
+class AssignPayload(BaseModel):
+    user_id: UUID | None = None
+
+
 # ---------- Endpoints ----------
 
 @router.get("", response_model=list[ConversationOut])
-def list_conversations(db: Session = Depends(get_db)):
-
+def list_conversations(assigned_to: str | None = None, db: Session = Depends(get_db)):
     sub = (
         db.query(
             Messages.conversation_id.label("conversation_id"),
@@ -66,12 +73,7 @@ def list_conversations(db: Session = Depends(get_db)):
     )
 
     q = (
-        db.query(
-            Conversations,
-            Messages.content,
-            Messages.created_at,
-            Leads.name,
-        )
+        db.query(Conversations, Messages.content, Messages.created_at, Leads.name)
         .outerjoin(sub, sub.c.conversation_id == Conversations.id)
         .outerjoin(
             Messages,
@@ -82,6 +84,9 @@ def list_conversations(db: Session = Depends(get_db)):
         .order_by(desc(Conversations.updated_at))
     )
 
+    if assigned_to:
+        q = q.filter(Conversations.assigned_to == assigned_to)
+
     return [
         ConversationOut(
             id=conv.id,
@@ -91,6 +96,7 @@ def list_conversations(db: Session = Depends(get_db)):
             is_archived=conv.is_archived,
             is_read=conv.is_read,
             unread_count=conv.unread_count,
+            assigned_to=conv.assigned_to,
         )
         for conv, last_content, last_at, lead_name in q.all()
     ]
@@ -113,7 +119,6 @@ def list_messages(conversation_id: UUID, db: Session = Depends(get_db)):
 
 @router.post("/{conversation_id}/messages", response_model=MessageOut)
 async def send_message(conversation_id: UUID, payload: MessageCreate, db: Session = Depends(get_db)):
-
     conv = db.query(Conversations).filter(Conversations.id == conversation_id).first()
     if not conv:
         raise HTTPException(status_code=404, detail="Conversation not found")
@@ -125,6 +130,7 @@ async def send_message(conversation_id: UUID, payload: MessageCreate, db: Sessio
         conversation_id=conversation_id,
         sender_type=payload.sender_type,
         content=payload.content,
+        status="sent",
     )
     db.add(msg)
 
@@ -133,7 +139,6 @@ async def send_message(conversation_id: UUID, payload: MessageCreate, db: Sessio
         conv.is_read = False
 
     conv.updated_at = datetime.utcnow()
-
     db.commit()
     db.refresh(msg)
 
@@ -145,6 +150,7 @@ async def send_message(conversation_id: UUID, payload: MessageCreate, db: Sessio
                 "conversation_id": str(msg.conversation_id),
                 "sender_type": msg.sender_type,
                 "content": msg.content,
+                "status": msg.status,
                 "created_at": msg.created_at.isoformat(),
             },
         },
@@ -156,42 +162,69 @@ async def send_message(conversation_id: UUID, payload: MessageCreate, db: Sessio
 
 @router.patch("/{conversation_id}/read")
 def mark_as_read(conversation_id: UUID, db: Session = Depends(get_db)):
-
     conv = db.query(Conversations).filter(Conversations.id == conversation_id).first()
     if not conv:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
     conv.is_read = True
     conv.unread_count = 0
-
     db.commit()
-    db.refresh(conv)
-    return conv
+    return {"ok": True}
+
+
+@router.patch("/{conversation_id}/read-messages")
+async def mark_messages_read(conversation_id: UUID, db: Session = Depends(get_db)):
+    conv = db.query(Conversations).filter(Conversations.id == conversation_id).first()
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    now = datetime.utcnow()
+    db.query(Messages).filter(
+        Messages.conversation_id == conversation_id,
+        Messages.sender_type == "cliente",
+        Messages.status != "read",
+    ).update({"status": "read", "read_at": now})
+
+    conv.is_read = True
+    conv.unread_count = 0
+    db.commit()
+
+    await manager.send_conversation_message(
+        {"type": "messages_read", "conversation_id": str(conversation_id)},
+        str(conversation_id),
+    )
+
+    return {"ok": True}
 
 
 @router.patch("/{conversation_id}/archive")
 def archive_conversation(conversation_id: UUID, db: Session = Depends(get_db)):
-
     conv = db.query(Conversations).filter(Conversations.id == conversation_id).first()
     if not conv:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
     conv.is_archived = True
-
     db.commit()
-    db.refresh(conv)
-    return conv
+    return {"ok": True}
 
 
 @router.patch("/{conversation_id}/unarchive")
 def unarchive_conversation(conversation_id: UUID, db: Session = Depends(get_db)):
-
     conv = db.query(Conversations).filter(Conversations.id == conversation_id).first()
     if not conv:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
     conv.is_archived = False
-
     db.commit()
-    db.refresh(conv)
-    return conv
+    return {"ok": True}
+
+
+@router.patch("/{conversation_id}/assign")
+def assign_conversation(conversation_id: UUID, payload: AssignPayload, db: Session = Depends(get_db)):
+    conv = db.query(Conversations).filter(Conversations.id == conversation_id).first()
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    conv.assigned_to = payload.user_id
+    db.commit()
+    return {"ok": True}

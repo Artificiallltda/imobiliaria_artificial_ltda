@@ -9,8 +9,11 @@ function getHeaders() {
   }
 }
 
-export async function fetchConversations() {
-  const res = await fetch(`${API_BASE_URL}/conversations`, { headers: getHeaders() })
+export async function fetchConversations(assignedTo = null) {
+  const url = assignedTo
+    ? `${API_BASE_URL}/conversations?assigned_to=${assignedTo}`
+    : `${API_BASE_URL}/conversations`
+  const res = await fetch(url, { headers: getHeaders() })
   if (!res.ok) throw new Error('Erro ao buscar conversas')
   return res.json()
 }
@@ -40,6 +43,13 @@ export async function markAsRead(conversationId) {
   })
 }
 
+export async function markMessagesRead(conversationId) {
+  await fetch(`${API_BASE_URL}/conversations/${conversationId}/read-messages`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+  })
+}
+
 export async function archiveConversation(conversationId) {
   await fetch(`${API_BASE_URL}/conversations/${conversationId}/archive`, {
     method: 'PATCH',
@@ -47,6 +57,17 @@ export async function archiveConversation(conversationId) {
   })
 }
 
+export async function unarchiveConversation(conversationId) {
+  await fetch(`${API_BASE_URL}/conversations/${conversationId}/unarchive`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+  })
+}
+
 export function createConversationSocket(conversationId) {
   return new WebSocket(`${WS_BASE_URL}/ws/conversations/${conversationId}`)
+}
+
+export function createUserSocket(userId) {
+  return new WebSocket(`${WS_BASE_URL}/ws/${userId}`)
 }
