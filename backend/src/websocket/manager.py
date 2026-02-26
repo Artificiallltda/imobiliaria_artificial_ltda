@@ -1,84 +1,95 @@
 """
-Gerenciador de conexões WebSocket para notificações em tempo real
+Gerenciador de conexões WebSocket para notificações e chat em tempo real
 """
+
 from typing import Dict, List
 from fastapi import WebSocket
 
+
 class ConnectionManager:
     def __init__(self):
-        # Armazena conexões ativas por user_id
-        self.active_connections: Dict[str, List[WebSocket]] = {}
+        # Conexões por usuário (notificações pessoais)
+        self.user_connections: Dict[str, List[WebSocket]] = {}
 
-    async def connect(self, websocket: WebSocket, user_id: str):
-        """Aceita conexão WebSocket e adiciona ao usuário"""
+        # Conexões por conversa (chat em tempo real)
+        self.conversation_connections: Dict[str, List[WebSocket]] = {}
+
+    # =========================
+    # CONEXÃO
+    # =========================
+
+    async def connect_user(self, websocket: WebSocket, user_id: str):
         await websocket.accept()
-        
-        if user_id not in self.active_connections:
-            self.active_connections[user_id] = []
-        
-        self.active_connections[user_id].append(websocket)
+        self.user_connections.setdefault(user_id, []).append(websocket)
 
-    def disconnect(self, websocket: WebSocket, user_id: str):
-        """Remove conexão WebSocket do usuário"""
-        if user_id in self.active_connections:
+    async def connect_conversation(self, websocket: WebSocket, conversation_id: str):
+        await websocket.accept()
+        self.conversation_connections.setdefault(conversation_id, []).append(websocket)
+
+    # =========================
+    # DESCONEXÃO
+    # =========================
+
+    def disconnect_user(self, websocket: WebSocket, user_id: str):
+        if user_id in self.user_connections:
             try:
-                self.active_connections[user_id].remove(websocket)
-                # Se não houver mais conexões para este usuário, remover do dicionário
-                if not self.active_connections[user_id]:
-                    del self.active_connections[user_id]
+                self.user_connections[user_id].remove(websocket)
+                if not self.user_connections[user_id]:
+                    del self.user_connections[user_id]
             except ValueError:
-                # Conexão não encontrada na lista
                 pass
 
-    async def send_personal_message(self, message: str, user_id: str):
-        """Envia mensagem para todas as conexões de um usuário específico"""
-        if user_id in self.active_connections:
-            disconnected_connections = []
-            
-            for connection in self.active_connections[user_id]:
-                try:
-                    await connection.send_text(message)
-                except Exception:
-                    # Conexão fechada ou com erro, marcar para remoção
-                    disconnected_connections.append(connection)
-            
-            # Remover conexões desconectadas
-            for connection in disconnected_connections:
-                self.disconnect(connection, user_id)
+    def disconnect_conversation(self, websocket: WebSocket, conversation_id: str):
+        if conversation_id in self.conversation_connections:
+            try:
+                self.conversation_connections[conversation_id].remove(websocket)
+                if not self.conversation_connections[conversation_id]:
+                    del self.conversation_connections[conversation_id]
+            except ValueError:
+                pass
 
-    async def broadcast(self, message: str):
-        """Envia mensagem para todos os usuários conectados"""
-        disconnected_users = []
-        
-        for user_id, connections in self.active_connections.items():
-            user_disconnected = []
-            
-            for connection in connections:
+    # =========================
+    # ENVIO DE MENSAGENS
+    # =========================
+
+    async def send_personal_message(self, data: dict, user_id: str):
+        if user_id in self.user_connections:
+            disconnected = []
+            for connection in self.user_connections[user_id]:
                 try:
-                    await connection.send_text(message)
+                    await connection.send_json(data)
                 except Exception:
-                    user_disconnected.append(connection)
-            
-            # Remover conexões desconectadas deste usuário
-            for connection in user_disconnected:
-                self.disconnect(connection, user_id)
-            
-            # Se usuário não tiver mais conexões, marcar para remoção
-            if not self.active_connections.get(user_id):
-                disconnected_users.append(user_id)
-        
-        # Remover usuários sem conexões
-        for user_id in disconnected_users:
-            if user_id in self.active_connections:
-                del self.active_connections[user_id]
+                    disconnected.append(connection)
+
+            for connection in disconnected:
+                self.disconnect_user(connection, user_id)
+
+    async def send_conversation_message(self, data: dict, conversation_id: str):
+        if conversation_id in self.conversation_connections:
+            disconnected = []
+            for connection in self.conversation_connections[conversation_id]:
+                try:
+                    await connection.send_json(data)
+                except Exception:
+                    disconnected.append(connection)
+
+            for connection in disconnected:
+                self.disconnect_conversation(connection, conversation_id)
+
+    async def broadcast(self, data: dict):
+        for user_id in list(self.user_connections.keys()):
+            await self.send_personal_message(data, user_id)
+
+    # =========================
+    # DEBUG / MONITORAMENTO
+    # =========================
 
     def get_connected_users(self) -> List[str]:
-        """Retorna lista de usuários conectados"""
-        return list(self.active_connections.keys())
+        return list(self.user_connections.keys())
 
-    def get_connection_count(self, user_id: str) -> int:
-        """Retorna número de conexões ativas para um usuário"""
-        return len(self.active_connections.get(user_id, []))
+    def get_connected_conversations(self) -> List[str]:
+        return list(self.conversation_connections.keys())
 
-# Instância global do gerenciador
+
+# Instância global
 manager = ConnectionManager()
