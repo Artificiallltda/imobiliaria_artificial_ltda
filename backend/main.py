@@ -18,6 +18,7 @@ from src.routes.properties_crud import router as properties_crud_router
 from src.routes.settings import router as settings_router
 from src.routes.dashboard import router as dashboard_router
 from src.routes.widget import router as widget_router
+from src.routes.users import router as users_router
 from src.websocket.routes import router as websocket_router
 
 app = FastAPI(title="API Imobiliária", version="1.0.0")
@@ -53,6 +54,7 @@ app.include_router(websocket_router)
 # ✅ Incluir rotas de dashboard
 app.include_router(dashboard_router)
 app.include_router(widget_router)
+app.include_router(users_router)
 
 
 class LoginPayload(BaseModel):

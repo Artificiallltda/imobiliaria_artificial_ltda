@@ -1,0 +1,99 @@
+.goalContainer {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 24px;
+}
+
+.goalTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 20px 0;
+}
+
+.goalItem {
+  margin-bottom: 20px;
+}
+
+.goalItem:last-child {
+  margin-bottom: 0;
+}
+
+.goalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.goalLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.goalValues {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progressFill.success {
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+}
+
+.progressFill.good {
+  background: linear-gradient(90deg, #0891b2, #06b6d4);
+}
+
+.progressFill.warning {
+  background: linear-gradient(90deg, #ea580c, #f97316);
+}
+
+.progressFill.danger {
+  background: linear-gradient(90deg, #dc2626, #ef4444);
+}
+
+.goalPercent {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .goalContainer {
+    padding: 16px;
+  }
+  
+  .goalTitle {
+    font-size: 16px;
+  }
+  
+  .goalHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .goalValues {
+    align-self: flex-end;
+  }
+}

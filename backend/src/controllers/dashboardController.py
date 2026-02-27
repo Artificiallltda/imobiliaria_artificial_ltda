@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Dict, Any
+import uuid
 
 
 def _column_exists(db: Session, table_name: str, column_name: str) -> bool:
@@ -136,9 +137,147 @@ def _get_corretores_ranking(db: Session, start_date: datetime) -> list:
     ]
 
 
-def get_dashboard_overview(db: Session, period: str = "30d"):
-    # Calcular data de início baseada no período
+def _calculate_growth(current: float, previous: float) -> float:
+    """Calcula percentual de crescimento"""
+    if previous == 0:
+        return 100.0 if current > 0 else 0.0
+    return round(((current - previous) / previous) * 100, 2)
+
+
+def _get_previous_period_start(period: str) -> datetime:
+    """Calcula data de início do período anterior"""
+    now = datetime.utcnow()
+    
+    if period == "7d":
+        return now - timedelta(days=14)
+    elif period == "30d":
+        return now - timedelta(days=60)
+    elif period == "12m":
+        return now - timedelta(days=730)
+    else:
+        return now - timedelta(days=60)
+
+
+def _get_period_metrics(db: Session, start_date: datetime, end_date: datetime, user_id: Optional[str] = None) -> Dict[str, float]:
+    """Busca métricas de um período específico"""
+    user_filter = ""
+    params = {"start_date": start_date, "end_date": end_date}
+    
+    if user_id:
+        user_filter = "AND assigned_to = :user_id"
+        params["user_id"] = uuid.UUID(user_id)
+    
+    # Total leads
+    total_leads = db.execute(
+        text(f"SELECT COUNT(*) FROM leads WHERE created_at >= :start_date AND created_at <= :end_date {user_filter}"),
+        params
+    ).scalar() or 0
+    
+    # Receita (soma de valores fechados)
+    revenue = db.execute(
+        text(f"""
+            SELECT COALESCE(SUM(value), 0)
+            FROM leads
+            WHERE status = 'fechado'
+              AND converted_at IS NOT NULL
+              AND converted_at >= :start_date
+              AND converted_at <= :end_date
+              {user_filter}
+        """),
+        params
+    ).scalar() or 0
+    
+    # Negócios fechados
+    closed_deals = db.execute(
+        text(f"""
+            SELECT COUNT(*)
+            FROM leads
+            WHERE status = 'fechado'
+              AND converted_at IS NOT NULL
+              AND converted_at >= :start_date
+              AND converted_at <= :end_date
+              {user_filter}
+        """),
+        params
+    ).scalar() or 0
+    
+    return {
+        "leads": float(total_leads),
+        "revenue": float(revenue),
+        "closed_deals": float(closed_deals)
+    }
+
+
+def _get_goals_progress(db: Session, user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Busca metas e progresso do mês atual"""
+    if not user_id:
+        return None
+    
+    # Buscar meta do mês
+    goal = db.execute(
+        text("""
+            SELECT target_value, target_deals
+            FROM goals
+            WHERE user_id = :user_id
+              AND DATE_TRUNC('month', month) = DATE_TRUNC('month', NOW())
+            LIMIT 1
+        """),
+        {"user_id": uuid.UUID(user_id)}
+    ).first()
+    
+    if not goal:
+        return None
+    
+    # Buscar resultados reais do mês
+    result = db.execute(
+        text("""
+            SELECT
+                COUNT(*) AS closed_deals,
+                COALESCE(SUM(value), 0) AS total_value
+            FROM leads
+            WHERE assigned_to = :user_id
+              AND status = 'fechado'
+              AND DATE_TRUNC('month', converted_at) = DATE_TRUNC('month', NOW())
+        """),
+        {"user_id": uuid.UUID(user_id)}
+    ).first()
+    
+    target_value = float(goal[0] or 0)
+    target_deals = int(goal[1] or 0)
+    current_value = float(result[1] or 0)
+    current_deals = int(result[0] or 0)
+    
+    progress_percent = 0
+    if target_value > 0:
+        progress_percent = round((current_value / target_value) * 100, 1)
+    
+    return {
+        "targetValue": target_value,
+        "currentValue": current_value,
+        "targetDeals": target_deals,
+        "currentDeals": current_deals,
+        "progressPercent": progress_percent
+    }
+
+
+def get_dashboard_overview(db: Session, period: str = "30d", user_id: Optional[str] = None):
+    # Calcular datas
     start_date = _get_start_date(period)
+    previous_start = _get_previous_period_start(period)
+    now = datetime.utcnow()
+    
+    # Métricas do período atual
+    current_metrics = _get_period_metrics(db, start_date, now, user_id)
+    
+    # Métricas do período anterior
+    previous_metrics = _get_period_metrics(db, previous_start, start_date, user_id)
+    
+    # Calcular crescimento
+    growth = {
+        "leads": _calculate_growth(current_metrics["leads"], previous_metrics["leads"]),
+        "revenue": _calculate_growth(current_metrics["revenue"], previous_metrics["revenue"]),
+        "closed_deals": _calculate_growth(current_metrics["closed_deals"], previous_metrics["closed_deals"])
+    }
     
     # Leads por mês (para gráfico)
     leads_by_month = _get_leads_by_month(db, start_date)
@@ -149,23 +288,35 @@ def get_dashboard_overview(db: Session, period: str = "30d"):
     # Taxa de conversão
     conversion_rate = _get_conversion_rate(db, start_date)
     
-    # Ranking de corretores
-    ranking = _get_corretores_ranking(db, start_date)
+    # Ranking de corretores (se não tiver filtro individual)
+    ranking = _get_corretores_ranking(db, start_date) if not user_id else []
+    
+    # Metas e progresso (apenas para dashboard individual)
+    goals = _get_goals_progress(db, user_id)
     
     # Totais existentes (mantidos para compatibilidade)
-    total_leads = db.execute(text("SELECT COUNT(*) FROM leads WHERE created_at >= :start_date"), {"start_date": start_date}).scalar() or 0
+    user_filter = ""
+    params = {"start_date": start_date}
+    
+    if user_id:
+        user_filter = "AND assigned_to = :user_id"
+        params["user_id"] = uuid.UUID(user_id)
+    
+    total_leads = db.execute(
+        text(f"SELECT COUNT(*) FROM leads WHERE created_at >= :start_date {user_filter}"), 
+        params
+    ).scalar() or 0
 
     # Leads por status
     rows = db.execute(
-        text(
-            """
+        text(f"""
             SELECT status, COUNT(*)
             FROM leads
             WHERE created_at >= :start_date
+            {user_filter}
             GROUP BY status
-            """
-        ),
-        {"start_date": start_date}
+        """),
+        params
     ).all()
 
     leads_by_status = {
@@ -223,16 +374,15 @@ def get_dashboard_overview(db: Session, period: str = "30d"):
 
     # Convertidos no período
     converted_this_period = db.execute(
-        text(
-            """
+        text(f"""
             SELECT COUNT(*)
             FROM leads
             WHERE status = 'fechado'
               AND converted_at IS NOT NULL
               AND converted_at >= :start_date
-            """
-        ),
-        {"start_date": start_date}
+              {user_filter}
+        """),
+        params
     ).scalar() or 0
 
     return {
@@ -244,8 +394,10 @@ def get_dashboard_overview(db: Session, period: str = "30d"):
             "unreadConversations": int(unread_conversations),
             "convertedThisPeriod": int(converted_this_period),
         },
+        "growth": growth,
+        "goals": goals,
+        "ranking": ranking,
         "leadsByMonth": leads_by_month,
         "estimatedRevenue": float(estimated_revenue or 0),
         "conversionRate": float(conversion_rate or 0),
-        "ranking": ranking
     }
