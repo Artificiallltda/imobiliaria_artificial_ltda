@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import StatCard from "../../components/ui/Dashboard/StatCard";
 import LeadsChart from "../../components/LeadsChart";
 import RankingTable from "../../components/RankingTable";
+import GrowthCards from "../../components/GrowthCards";
+import GoalProgress from "../../components/GoalProgress";
 import { api } from '../../services/api';
 import styles from './Dashboard.module.css';
 
@@ -11,16 +13,37 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [period, setPeriod] = useState('30d');
+  const [selectedUser, setSelectedUser] = useState('');
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
     fetchDashboard();
-  }, [period]);
+  }, [period, selectedUser]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await api.get('/users');
+      setUsers(response);
+    } catch (err) {
+      console.error('Erro ao buscar usuários:', err);
+    }
+  };
 
   const fetchDashboard = async () => {
     try {
       setLoading(true);
       console.log('Buscando dados do dashboard...');
-      const url = `http://127.0.0.1:8000/dashboard/overview?period=${period}`;
+      
+      const params = new URLSearchParams({ period });
+      if (selectedUser) {
+        params.append('user_id', selectedUser);
+      }
+      
+      const url = `http://127.0.0.1:8000/dashboard/overview?${params}`;
       console.log('URL completa:', url);
       
       // Tentando com fetch direto
@@ -48,6 +71,14 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleExport = () => {
+    const params = new URLSearchParams({ period });
+    if (selectedUser) {
+      params.append('user_id', selectedUser);
+    }
+    window.open(`http://127.0.0.1:8000/dashboard/report?${params}`);
   };
 
   const formatCurrency = (value) => {
@@ -112,6 +143,19 @@ export default function Dashboard() {
 
         <div className={styles.dashboardControls}>
           <select 
+            value={selectedUser} 
+            onChange={(e) => setSelectedUser(e.target.value)}
+            className={styles.userSelect}
+          >
+            <option value="">Todos os corretores</option>
+            {users.map(user => (
+              <option key={user.id} value={user.id}>
+                {user.name}
+              </option>
+            ))}
+          </select>
+          
+          <select 
             value={period} 
             onChange={(e) => setPeriod(e.target.value)}
             className={styles.periodSelect}
@@ -120,6 +164,13 @@ export default function Dashboard() {
             <option value="30d">Últimos 30 dias</option>
             <option value="12m">Últimos 12 meses</option>
           </select>
+          
+          <button 
+            onClick={handleExport}
+            className={styles.exportButton}
+          >
+            📊 Exportar PDF
+          </button>
         </div>
       </div>
 
@@ -149,6 +200,12 @@ export default function Dashboard() {
           tone="info"
         />
       </section>
+
+      {/* Cards de Crescimento */}
+      <GrowthCards growth={data?.growth} />
+
+      {/* Progresso de Metas (apenas para dashboard individual) */}
+      {data?.goals && <GoalProgress goals={data.goals} />}
 
       <div className={styles.dashboardRow}>
         <section className={styles.dashboardCol}>
