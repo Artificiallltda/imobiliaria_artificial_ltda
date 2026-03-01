@@ -2,38 +2,31 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Card, Input, Select } from '../../components/ui/index.js';
 import { getProperties, deleteProperty, formatPrice, translateStatus } from '../../services/propertiesService.js';
+import { useI18n } from '../../i18n/index.jsx';
 import styles from './styles.module.css';
 
 const AdminProperties = () => {
   const navigate = useNavigate();
-  
-  // Estados
+  const { t } = useI18n();
+
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [total, setTotal] = useState(0);
-  
-  // Filtros
-  const [filters, setFilters] = useState({
-    city: '',
-    status: ''
-  });
 
-  // Buscar imóveis
+  const [filters, setFilters] = useState({ city: '', status: '' });
+
   const fetchProperties = async () => {
     try {
       setLoading(true);
       setError(null);
-      
       const validFilters = {
         city: filters.city.trim() || undefined,
         status: filters.status || undefined
       };
-      
       const response = await getProperties(validFilters);
       setProperties(response.data);
       setTotal(response.total);
-      
     } catch (err) {
       setError(err.message);
       setProperties([]);
@@ -43,11 +36,8 @@ const AdminProperties = () => {
     }
   };
 
-  useEffect(() => {
-    fetchProperties();
-  }, [filters]);
+  useEffect(() => { fetchProperties(); }, [filters]);
 
-  // Componente Dropdown para ações
   const ActionsDropdown = ({ property, isLast }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
@@ -58,45 +48,29 @@ const AdminProperties = () => {
           setIsOpen(false);
         }
       };
-
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
-
-    const handleEdit = () => {
-      navigate(`/admin/properties/${property.id}/edit`);
-      setIsOpen(false);
-    };
-
-    const handleDelete = () => {
-      handleDeleteProperty(property.id, property.title);
-      setIsOpen(false);
-    };
-
-    const handleViewDetails = () => {
-      navigate(`/imoveis/${property.id}`);
-      setIsOpen(false);
-    };
 
     return (
       <div className={styles.dropdown} ref={dropdownRef}>
         <button
           className={styles.dropdownToggle}
           onClick={() => setIsOpen(!isOpen)}
-          title="Ações"
+          title={t('adminProperties.actions.toggle')}
         >
           ⋮
         </button>
         {isOpen && (
           <div className={`${styles.dropdownMenu} ${isLast ? styles.dropdownMenuUp : ''}`}>
-            <button className={styles.dropdownItem} onClick={handleEdit}>
-              Editar
+            <button className={styles.dropdownItem} onClick={() => { navigate(`/admin/properties/${property.id}/edit`); setIsOpen(false); }}>
+              {t('adminProperties.actions.edit')}
             </button>
-            <button className={styles.dropdownItem} onClick={handleDelete}>
-              Excluir
+            <button className={styles.dropdownItem} onClick={() => { handleDeleteProperty(property.id, property.title); setIsOpen(false); }}>
+              {t('adminProperties.actions.delete')}
             </button>
-            <button className={styles.dropdownItem} onClick={handleViewDetails}>
-              Ver detalhes
+            <button className={styles.dropdownItem} onClick={() => { navigate(`/properties/${property.id}`); setIsOpen(false); }}>
+              {t('adminProperties.actions.viewDetails')}
             </button>
           </div>
         )}
@@ -104,110 +78,90 @@ const AdminProperties = () => {
     );
   };
 
-  // Deletar imóvel
   const handleDeleteProperty = async (id, title) => {
-    if (!window.confirm(`Tem certeza que deseja excluir o imóvel "${title}"?`)) {
-      return;
-    }
-
+    if (!window.confirm(t('adminProperties.confirmDelete', { title }))) return;
     try {
       await deleteProperty(id);
-      // Remove da lista local
       setProperties(prev => prev.filter(p => p.id !== id));
       setTotal(prev => prev - 1);
     } catch (err) {
-      alert('Erro ao excluir imóvel: ' + err.message);
+      alert(t('adminProperties.deleteError', { message: err.message }));
     }
   };
 
-  // Opções de status
   const statusOptions = [
-    { value: '', label: 'Todos' },
-    { value: 'AVAILABLE', label: 'Disponível' },
-    { value: 'SOLD', label: 'Vendido' },
-    { value: 'RESERVED', label: 'Reservado' }
+    { value: '', label: t('adminProperties.filters.statusOptions.all') },
+    { value: 'AVAILABLE', label: t('adminProperties.filters.statusOptions.available') },
+    { value: 'SOLD', label: t('adminProperties.filters.statusOptions.sold') },
+    { value: 'RESERVED', label: t('adminProperties.filters.statusOptions.reserved') },
   ];
 
   return (
     <div className={styles.adminProperties}>
-      {/* Header */}
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Administração de Imóveis</h1>
-          <p className={styles.subtitle}>
-            Gerencie todos os imóveis do sistema
-          </p>
+          <h1 className={styles.title}>{t('adminProperties.title')}</h1>
+          <p className={styles.subtitle}>{t('adminProperties.subtitle')}</p>
         </div>
-        <Button 
-          onClick={() => navigate('/admin/properties/new')}
-          className={styles.addButton}
-        >
-          + Adicionar Imóvel
+        <Button onClick={() => navigate('/admin/properties/new')} className={styles.addButton}>
+          {t('adminProperties.addButton')}
         </Button>
       </div>
 
-      {/* Filtros */}
       <Card className={styles.filters}>
         <div className={styles.filtersContent}>
           <Input
-            placeholder="Filtrar por cidade..."
+            placeholder={t('adminProperties.filters.cityPlaceholder')}
             value={filters.city}
             onChange={(e) => setFilters(prev => ({ ...prev, city: e.target.value }))}
             className={styles.filterInput}
           />
-          
           <Select
-            placeholder="Status"
+            placeholder={t('adminProperties.filters.statusPlaceholder')}
             value={filters.status}
             onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
             options={statusOptions}
             className={styles.filterSelect}
           />
-          
-          <Button 
-            variant="outline"
-            onClick={() => setFilters({ city: '', status: '' })}
-          >
-            Limpar
+          <Button variant="outline" onClick={() => setFilters({ city: '', status: '' })}>
+            {t('adminProperties.filters.clear')}
           </Button>
         </div>
       </Card>
 
-      {/* Lista de imóveis */}
       <Card className={styles.propertiesList}>
         {loading ? (
           <div className={styles.loading}>
-            <span>⏳ Carregando imóveis...</span>
+            <span>{t('adminProperties.loading')}</span>
           </div>
         ) : error ? (
           <div className={styles.error}>
-            <span>❌ Erro: {error}</span>
-            <Button onClick={fetchProperties}>Tentar novamente</Button>
+            <span>{t('adminProperties.error', { message: error })}</span>
+            <Button onClick={fetchProperties}>{t('adminProperties.retry')}</Button>
           </div>
         ) : properties.length === 0 ? (
           <div className={styles.empty}>
-            <span>🔍 Nenhum imóvel encontrado</span>
+            <span>{t('adminProperties.empty.message')}</span>
             <Button onClick={() => navigate('/admin/properties/new')}>
-              Adicionar primeiro imóvel
+              {t('adminProperties.empty.action')}
             </Button>
           </div>
         ) : (
           <>
             <div className={styles.listHeader}>
-              <span className={styles.total}>{total} imóveis encontrados</span>
+              <span className={styles.total}>{t('adminProperties.total', { count: total })}</span>
             </div>
-            
+
             <div className={styles.propertiesGrid}>
-              {/* Versão Desktop - Tabela */}
               <div className={styles.desktopView}>
                 <table className={styles.table}>
                   <thead>
                     <tr>
-                      <th>Título</th>
-                      <th>Cidade</th>
-                      <th>Preço</th>
-                      <th>Status</th>
-                      <th>Ações</th>
+                      <th>{t('adminProperties.table.title')}</th>
+                      <th>{t('adminProperties.table.city')}</th>
+                      <th>{t('adminProperties.table.price')}</th>
+                      <th>{t('adminProperties.table.status')}</th>
+                      <th>{t('adminProperties.table.actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -216,7 +170,13 @@ const AdminProperties = () => {
                         <td className={styles.titleCell}>
                           <div>
                             <strong>{property.title}</strong>
-                            <small>{property.bedrooms} quartos • {property.bathrooms} banheiros • {property.area}m²</small>
+                            <small>
+                              {t('adminProperties.details', {
+                                bedrooms: property.bedrooms,
+                                bathrooms: property.bathrooms,
+                                area: property.area
+                              })}
+                            </small>
                           </div>
                         </td>
                         <td>{property.city}</td>
@@ -227,10 +187,7 @@ const AdminProperties = () => {
                           </span>
                         </td>
                         <td className={styles.actionsCell}>
-                          <ActionsDropdown 
-                            property={property} 
-                            isLast={index === properties.length - 1}
-                          />
+                          <ActionsDropdown property={property} isLast={index === properties.length - 1} />
                         </td>
                       </tr>
                     ))}
@@ -238,32 +195,24 @@ const AdminProperties = () => {
                 </table>
               </div>
 
-              {/* Versão Mobile - Cards Empilhados */}
               <div className={styles.mobileView}>
                 {properties.map((property, index) => (
                   <div key={property.id} className={styles.propertyCard}>
                     <div className={styles.cardHeader}>
                       <h3 className={styles.cardTitle}>{property.title}</h3>
                       <div className={styles.cardActions}>
-                        <ActionsDropdown 
-                          property={property} 
-                          isLast={index === properties.length - 1}
-                        />
+                        <ActionsDropdown property={property} isLast={index === properties.length - 1} />
                       </div>
                     </div>
-                    
-                    <div className={styles.cardLocation}>
-                      📍 {property.city}
-                    </div>
-                    
-                    <div className={styles.cardPrice}>
-                      {formatPrice(property.price)}
-                    </div>
-                    
+                    <div className={styles.cardLocation}>📍 {property.city}</div>
+                    <div className={styles.cardPrice}>{formatPrice(property.price)}</div>
                     <div className={styles.cardDetails}>
-                      {property.bedrooms} quartos • {property.bathrooms} banheiros • {property.area}m²
+                      {t('adminProperties.details', {
+                        bedrooms: property.bedrooms,
+                        bathrooms: property.bathrooms,
+                        area: property.area
+                      })}
                     </div>
-                    
                     <div className={styles.cardStatus}>
                       <span className={`${styles.status} ${styles[property.status]}`}>
                         {translateStatus(property.status)}

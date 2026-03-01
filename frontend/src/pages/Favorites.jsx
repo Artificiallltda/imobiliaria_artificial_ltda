@@ -1,5 +1,5 @@
 // src/pages/Favorites.jsx
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, Card, Modal, StatusTag, useToast } from '../components/ui/index.js'
 import { useI18n } from '../i18n/index.jsx'
@@ -12,31 +12,36 @@ export default function Favorites() {
 
   const [favorites, setFavorites] = useState([])
   const [loading, setLoading] = useState(true)
+  const [errorMsg, setErrorMsg] = useState(null)
 
   const [contactOpen, setContactOpen] = useState(false)
   const [selected, setSelected] = useState(null)
 
   // Buscar favoritos da API
-  const fetchFavorites = async () => {
+  const fetchFavorites = useCallback(async () => {
     try {
       setLoading(true)
+      setErrorMsg(null)
       const data = await getFavorites()
       setFavorites(data)
     } catch (error) {
-      if (error.status === 401) {
-        toast({ type: 'error', message: 'Sessão expirada. Faça login novamente.' })
-        navigate('/login')
+      if (error.status === 401 || error.status === 403) {
+        setErrorMsg(t('favorites.errors.sessionExpired'))
+        toast({ type: 'error', message: t('favorites.errors.sessionExpired') })
+      } else if (error.status === 0 || !error.status) {
+        setErrorMsg(t('favorites.errors.serverOffline'))
       } else {
-        toast({ type: 'error', message: 'Erro ao carregar favoritos.' })
+        setErrorMsg(t('favorites.errors.loadFailed'))
+        toast({ type: 'error', message: t('favorites.errors.loadFailed') })
       }
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchFavorites()
-  }, [navigate, toast])
+  }, [fetchFavorites])
 
   // Recarregar quando a página ganha foco (volta de outra página)
   useEffect(() => {
@@ -61,7 +66,7 @@ export default function Favorites() {
       setFavorites((prev) => prev.filter((f) => f.property_id !== propertyId))
       toast({ type: 'success', message: t('favorites.toast.removed') })
     } catch (error) {
-      toast({ type: 'error', message: 'Erro ao remover favorito.' })
+      toast({ type: 'error', message: t('favorites.errors.removeFailed') })
     }
   }
 
@@ -78,9 +83,9 @@ export default function Favorites() {
 
   const getStatusLabel = (status) => {
     const statusMap = {
-      'AVAILABLE': 'Ativo',
-      'SOLD': 'Vendido',
-      'RESERVED': 'Reservado'
+      'AVAILABLE': t('favorites.status.active'),
+      'SOLD': t('favorites.status.sold'),
+      'RESERVED': t('favorites.status.reserved'),
     }
     return statusMap[status] || status
   }
@@ -101,7 +106,23 @@ export default function Favorites() {
           <h2>{t('favorites.title')}</h2>
         </div>
         <Card className="favorites-empty" variant="flat">
-          <p className="muted">Carregando favoritos...</p>
+          <p className="muted">{t('favorites.loading')}</p>
+        </Card>
+      </div>
+    )
+  }
+
+  if (errorMsg) {
+    return (
+      <div className="page">
+        <div className="favorites-header">
+          <h2>{t('favorites.title')}</h2>
+        </div>
+        <Card className="favorites-empty" variant="flat">
+          <p className="muted">{errorMsg}</p>
+          <div className="favorites-empty-actions" style={{ marginTop: 16 }}>
+            <Button onClick={fetchFavorites}>{t('favorites.retry')}</Button>
+          </div>
         </Card>
       </div>
     )
@@ -154,7 +175,7 @@ export default function Favorites() {
                   <Button onClick={() => handleContact(fav.property)}>{t('favorites.actions.contactAgent')}</Button>
 
                   <Button variant="secondary" onClick={() => navigate(`/imoveis/${fav.property_id}`)}>
-                    Ver Detalhes
+                    {t('favorites.actions.viewDetails')}
                   </Button>
                 </div>
               </div>
@@ -175,13 +196,7 @@ export default function Favorites() {
             <Button
               onClick={() => {
                 setContactOpen(false)
-                toast({
-                  type: 'warning',
-                  message: t('favorites.toast.contactShortcut'),
-                })
-
-                // Se quiser, pode navegar direto para mensagens:
-                // navigate("/mensagens");
+                navigate('/mensagens')
               }}
             >
               {t('favorites.modal.startChat')}

@@ -1,4 +1,198 @@
 export default {
+  supportBot: {
+    title: 'Virtual Assistant',
+    subtitle: 'Online now',
+    prompt: 'Hello! Need help? Talk to one of our agents.',
+    startButton: 'Call agent',
+    choicePrompt: 'How would you like to be served?',
+    whatsappButton: 'WhatsApp',
+    chatButton: 'Internal chat',
+    cancel: 'Cancel',
+    done: 'An agent will respond to you shortly!',
+    restart: 'New conversation',
+    whatsappMessage: 'Hello! I need help with a property.',
+  },
+
+  adminPropertyForm: {
+    titleCreate: 'Create New Property',
+    titleEdit: 'Edit Property',
+    back: '← Back',
+    fields: {
+      title: 'Title *',
+      titlePlaceholder: 'Ex: Condo House',
+      city: 'City *',
+      cityPlaceholder: 'Ex: New York',
+      description: 'Description *',
+      descriptionPlaceholder: 'Detailed property description...',
+      price: 'Price (USD) *',
+      area: 'Area (m²) *',
+      bedrooms: 'Bedrooms *',
+      bathrooms: 'Bathrooms *',
+      status: 'Status *',
+    },
+    statusOptions: {
+      available: 'Available',
+      reserved: 'Reserved',
+      sold: 'Sold',
+    },
+    actions: {
+      cancel: 'Cancel',
+      create: 'Create',
+      update: 'Update',
+      saving: 'Saving...',
+    },
+    success: {
+      created: 'Property created successfully!',
+      updated: 'Property updated successfully!',
+    },
+    errors: {
+      load: 'Error loading property',
+      save: 'Error saving property',
+    },
+  },
+
+  adminProperties: {
+    title: 'Property Management',
+    subtitle: 'Manage all properties in the system',
+    addButton: '+ Add Property',
+    filters: {
+      cityPlaceholder: 'Filter by city...',
+      statusPlaceholder: 'Status',
+      clear: 'Clear',
+      statusOptions: {
+        all: 'All',
+        available: 'Available',
+        sold: 'Sold',
+        reserved: 'Reserved',
+      },
+    },
+    loading: '⏳ Loading properties...',
+    error: '❌ Error: {message}',
+    retry: 'Try again',
+    empty: {
+      message: '🔍 No properties found',
+      action: 'Add first property',
+    },
+    total: '{count} properties found',
+    table: {
+      title: 'Title',
+      city: 'City',
+      price: 'Price',
+      status: 'Status',
+      actions: 'Actions',
+    },
+    actions: {
+      toggle: 'Actions',
+      edit: 'Edit',
+      delete: 'Delete',
+      viewDetails: 'View details',
+    },
+    details: '{bedrooms} bedrooms • {bathrooms} bathrooms • {area}m²',
+    confirmDelete: 'Are you sure you want to delete the property "{title}"?',
+    deleteError: 'Error deleting property: {message}',
+  },
+
+  propertyDetail: {
+    sectionTitle: 'Property Information',
+    loading: 'Loading property details...',
+    notFound: {
+      title: 'Property not found',
+      description: 'The property you are looking for was not found.',
+      back: 'Back to list',
+    },
+    error: {
+      title: 'Error loading property',
+      description: 'Could not load details right now. Please try again.',
+      back: 'Back to list',
+    },
+    info: {
+      totalArea: 'Total Area',
+      usableArea: 'Usable Area',
+      bedrooms: 'Bedrooms',
+      suites: 'Suites',
+      bathrooms: 'Bathrooms',
+      parkingSpaces: 'Parking',
+      pool: 'Pool',
+      garden: 'Garden',
+      furnished: 'Furnished',
+      yes: 'Yes',
+      no: 'No',
+    },
+    contact: {
+      title: 'Interested in this property?',
+      description: 'Talk to one of our agents for more information.',
+      talkToAgent: 'Talk to Agent',
+      scheduleVisit: 'Schedule Visit',
+      whatsapp: 'WhatsApp',
+      favorite: 'Save',
+      favorited: 'Saved',
+      share: 'Share',
+      sharing: 'Copying...',
+      removeFavoriteTitle: 'Remove from favorites',
+      addFavoriteTitle: 'Add to favorites',
+      shareTitle: 'Copy property link',
+    },
+    description: 'Description',
+    features: 'Features',
+    additionalInfo: {
+      title: 'Additional Information',
+      none: 'No additional information.',
+      yearBuilt: 'Year Built',
+      floor: 'Floor',
+      ground: 'Ground floor',
+      condo: 'Condo Fee',
+      iptu: 'Property Tax',
+      perMonth: '/month',
+      perYear: '/year',
+    },
+    nearbyPlaces: {
+      title: 'Nearby Places',
+      none: 'No nearby places data.',
+    },
+    chat: {
+      title: 'Talk to Agent',
+      about: 'You are starting a conversation about the property:',
+      goToChat: 'Go to Chat',
+      cancel: 'Cancel',
+    },
+    visit: {
+      title: 'Schedule Visit',
+      property: 'Property',
+      name: 'Your name *',
+      namePlaceholder: 'Enter your name',
+      phone: 'Your phone *',
+      phonePlaceholder: '+1 (555) 000-0000',
+      date: 'Preferred date *',
+      time: 'Preferred time',
+      confirm: 'Confirm via WhatsApp',
+      cancel: 'Cancel',
+      missingFields: 'Please fill in all fields to schedule.',
+      successMessage: 'Redirecting to WhatsApp to confirm the visit!',
+    },
+    toast: {
+      favoriteAdded: 'Property added to favorites',
+      favoriteRemoved: 'Property removed from favorites',
+      alreadyFavorited: 'Property already in favorites',
+      loginRequired: 'Please log in to save properties.',
+      favoriteError: 'Error updating favorites. Please try again.',
+      linkCopied: 'Link copied! Share with your clients.',
+      linkCopiedShort: 'Link copied!',
+      linkError: 'Could not copy the link.',
+    },
+    imageAlt: 'Property image - {title}',
+    imageAltDefault: 'Property image',
+  },
+
+  propertyCard: {
+    bedroom: 'bedroom',
+    bedrooms: 'bedrooms',
+    bathroom: 'bathroom',
+    bathrooms: 'bathrooms',
+    viewDetails: 'View Details',
+    edit: 'Edit',
+    scheduleVisit: 'Schedule Visit',
+  },
+
   properties: {
   title: 'Property Catalog',
   subtitle: 'Find the perfect property for you',
@@ -128,15 +322,29 @@ export default {
 },
   leads: {
   title: 'Leads',
-  subtitle: 'Track the sales funnel (mock data).',
+  subtitle: 'Track the sales funnel.',
 
   resultsPill: '{count} result(s)',
+
+  loading: 'Loading leads...',
+  error: 'Error loading leads: {message}',
+  foundCount: 'Found {count} lead(s)',
 
   filters: {
     searchLabel: 'Search',
     searchPlaceholder: 'Search by name or email...',
     statusLabel: 'Status',
+    apply: 'Apply filters',
     clear: 'Clear',
+  },
+
+  statusOptions: {
+    all: 'All',
+    new: 'New',
+    inService: 'In Progress',
+    proposalSent: 'Proposal Sent',
+    closed: 'Closed',
+    lost: 'Lost',
   },
 
   table: {
@@ -168,12 +376,28 @@ export default {
     viewDetail: 'View details →',
     createdAt: 'Created on {date}',
   },
+
+  pagination: {
+    prev: 'Previous',
+    next: 'Next',
+    page: 'Page {current} of {total}',
+  },
 },
   favorites: {
   title: 'Favorites',
   subtitle: 'Saved properties to revisit later.',
 
   resultsPill: '{count} favorite(s)',
+
+  loading: 'Loading favorites...',
+  retry: 'Try again',
+
+  errors: {
+    sessionExpired: 'Session expired. Please log in again.',
+    serverOffline: 'Could not connect to server. Check if backend is running.',
+    loadFailed: 'Error loading favorites.',
+    removeFailed: 'Error removing favorite.',
+  },
 
   empty: {
     title: 'No favorites yet',
@@ -184,6 +408,7 @@ export default {
   actions: {
     remove: 'Remove',
     contactAgent: 'Talk to agent',
+    viewDetails: 'View Details',
   },
 
   toast: {
@@ -202,6 +427,7 @@ export default {
   status: {
     active: 'Active',
     reserved: 'Reserved',
+    sold: 'Sold',
     inactive: 'Inactive',
   },
 },
@@ -287,6 +513,24 @@ export default {
     esES: 'Spanish',
   },
 
+  login: {
+    brand: 'Real Estate',
+    title: 'Access your account',
+    emailLabel: 'Email',
+    emailPlaceholder: 'youremail@example.com',
+    passwordLabel: 'Password',
+    passwordPlaceholder: '••••••',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
+    submit: 'Sign in',
+    submitting: 'Signing in...',
+    errors: {
+      emailRequired: 'Please enter your email.',
+      emailInvalid: 'Please enter a valid email.',
+      loginFailed: 'Error signing in, please try again.',
+    },
+  },
+
   rightSidebar: {
     title: 'My Properties',
     status: 'Active',
@@ -338,6 +582,15 @@ export default {
       priceZero: '$ 0.00',
       details: '— beds • — baths • — m²',
       desc: 'Property description.',
+      active: 'Active',
+      bedrooms: 'bedrooms',
+      bathrooms: 'bathrooms',
+      favorited: 'added to favorites!',
+      alreadyFavorited: 'Property is already in favorites.',
+      loginToFavorite: 'Log in to favorite properties.',
+      favoriteError: 'Error favoriting. Please try again.',
+      favorite: 'Favorite',
+      offer: 'Make Offer',
       actions: {
         favorite: 'Favorite',
         offer: 'Make Offer',
@@ -345,6 +598,11 @@ export default {
     },
 
     modal: {
+      title: 'Filters',
+      cancel: 'Cancel',
+      apply: 'Apply',
+      text: 'Adjust your filters and click "Apply".',
+      wip: 'Filters in development.',
       filters: {
         title: 'Filters',
         cancel: 'Cancel',
@@ -352,6 +610,24 @@ export default {
         toastApplied: 'Filters applied (mock).',
         body: 'Adjust your filters and click "Apply".',
       },
+    },
+
+    searchForm: {
+      title: 'Find Property',
+      location: 'Location',
+      priceMin: 'Min price',
+      priceMax: 'Max price',
+      maxKm: 'Max km',
+      type: 'Type',
+      bedrooms: 'Bedrooms',
+      bathrooms: 'Bathrooms',
+      city: 'City',
+      country: 'Country',
+      button: 'Search',
+      started: 'Search started.',
+      option1: 'Option 1',
+      option2: 'Option 2',
+      option3: 'Option 3',
     },
   },
 }
