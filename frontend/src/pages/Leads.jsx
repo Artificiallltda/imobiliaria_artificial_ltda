@@ -1,20 +1,9 @@
-// src/pages/Leads.jsx - UPDATED 1771849897000
-import { useEffect, useMemo, useState } from 'react'
+// src/pages/Leads.jsx
+import { useEffect, useState } from 'react'
 import { getLeads } from '../services/leadsService.js'
 import { StatusTag } from '../components/ui/index.js'
 import { useI18n } from '../i18n/index.jsx'
 
-// FORÇAR REBUILD - Valores atualizados para o MVP - sem dependência de traduções
-const STATUS_VALUES = [
-  { value: 'Todos', label: 'Todos' },
-  { value: 'Novo', label: 'Novo' },
-  { value: 'Em Atendimento', label: 'Em Atendimento' },
-  { value: 'Proposta Enviada', label: 'Proposta Enviada' },
-  { value: 'Fechado', label: 'Fechado' },
-  { value: 'Perdido', label: 'Perdido' }
-]
-
-// FORÇAR REBUILD - Funções atualizadas
 function getStatusTag(status) {
   switch (status.toLowerCase()) {
     case 'novo':
@@ -32,7 +21,6 @@ function getStatusTag(status) {
   }
 }
 
-// FORÇAR REBUILD - Função atualizada
 function mapStatusToDisplay(backendStatus) {
   switch (backendStatus) {
     case 'novo':
@@ -50,21 +38,23 @@ function mapStatusToDisplay(backendStatus) {
   }
 }
 
-// FORÇAR REBUILD - Componente atualizado
-export default function Leads_UPDATED_1771849897000() {
+export default function Leads() {
   const { t } = useI18n()
 
-  // Adicionar timestamp para forçar reload
-const CACHE_BUSTER = Date.now()
-console.log('STATUS_VALUES atuais:', STATUS_VALUES)
-console.log('FORÇANDO REBUILD - Componente: Leads_UPDATED_1771849897000')
+  const STATUS_VALUES = [
+    { value: 'Todos', label: t('leads.statusOptions.all') },
+    { value: 'Novo', label: t('leads.statusOptions.new') },
+    { value: 'Em Atendimento', label: t('leads.statusOptions.inService') },
+    { value: 'Proposta Enviada', label: t('leads.statusOptions.proposalSent') },
+    { value: 'Fechado', label: t('leads.statusOptions.closed') },
+    { value: 'Perdido', label: t('leads.statusOptions.lost') },
+  ]
 
-// Reset forçado do estado inicial
-const [query, setQuery] = useState('')
-const [status, setStatus] = useState('Todos')
-const [leads, setLeads] = useState([])
-const [loading, setLoading] = useState(true)
-const [error, setError] = useState(null)
+  const [query, setQuery] = useState('')
+  const [status, setStatus] = useState('Todos')
+  const [leads, setLeads] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     const fetchLeads = async () => {
@@ -72,17 +62,14 @@ const [error, setError] = useState(null)
         setLoading(true)
         setError(null)
         const data = await getLeads({
-        status: status !== 'Todos' ? status : undefined,
-        search: query || undefined,
-        page: 1,
-        limit: 10
-      })
-      console.log('Status no componente:', status)
-        console.log('Dados recebidos do backend:', data)
-        setLeads(data.data || data)  
+          status: status !== 'Todos' ? status : undefined,
+          search: query || undefined,
+          page: 1,
+          limit: 10
+        })
+        setLeads(data.data || data)
       } catch (err) {
         setError(err.message)
-        console.error('Erro ao carregar leads:', err)
       } finally {
         setLoading(false)
       }
@@ -91,19 +78,15 @@ const [error, setError] = useState(null)
     fetchLeads()
   }, [status, query])
 
-  // TODO - Substituir dados mockados futuramente pela API
-  // const leads = leadsMock
-
   return (
     <div className="page">
       <div className="page-header">
         <div>
           <h1 className="page-title">{t('leads.title')}</h1>
-          <p className="page-desc">{t('leads.description')}</p>
+          <p className="page-desc">{t('leads.subtitle')}</p>
         </div>
       </div>
 
-      {/* Filtros */}
       <section className="panel">
         <div className="leads-controls">
           <div className="control">
@@ -142,19 +125,18 @@ const [error, setError] = useState(null)
 
       {loading && (
         <section className="panel">
-          <div className="leads-loading">Carregando leads...</div>
+          <div className="leads-loading">{t('leads.loading')}</div>
         </section>
       )}
 
       {error && (
         <section className="panel">
-          <div className="leads-error">Erro ao carregar leads: {error}</div>
+          <div className="leads-error">{t('leads.error', { message: error })}</div>
         </section>
       )}
 
       {!loading && !error && (
         <>
-          {/* Desktop: tabela */}
           <section className="panel leads-table-wrap">
             <div className="leads-table-scroll">
               <table className="leads-table">
@@ -202,7 +184,6 @@ const [error, setError] = useState(null)
             </div>
           </section>
 
-          {/* Mobile: cards */}
           <section className="leads-cards">
             {leads.map((lead) => {
               const displayStatus = mapStatusToDisplay(lead.status)
@@ -242,7 +223,6 @@ const [error, setError] = useState(null)
 }
 
 function formatDateBR(iso) {
-  // YYYY-MM-DD -> DD/MM/YYYY
   const [y, m, d] = iso.split('-')
   return `${d}/${m}/${y}`
 }

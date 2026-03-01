@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Button, StatusTag, Modal, useToast } from '../../components/ui/index.js';
 import Gallery from '../../components/Properties/Gallery/index.jsx';
 import styles from './styles.module.css';
+import { useI18n } from '../../i18n/index.jsx';
 
 import { getPropertyById } from '../../services/propertiesService';
 import { addFavorite, removeFavorite, checkFavorite, generatePublicLink } from '../../services/favoritesService';
@@ -11,6 +12,7 @@ import { formatPriceBRL, getStatusLabel, getStatusTone } from '../../utils/prope
 const PropertyDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const { toast } = useToast();
 
   const [property, setProperty] = useState(null);
@@ -79,18 +81,18 @@ const PropertyDetail = () => {
 
   const handleConfirmVisit = () => {
     if (!visitDate || !visitName || !visitPhone) {
-      toast({ type: 'error', message: 'Preencha todos os campos para agendar.' });
+      toast({ type: 'error', message: t('propertyDetail.visit.missingFields') });
       return;
     }
     const msg = encodeURIComponent(
-      `Olá! Gostaria de agendar uma visita ao imóvel "${property.title}".\n` +
-      `Data: ${visitDate} às ${visitTime}\n` +
-      `Nome: ${visitName}\n` +
-      `Telefone: ${visitPhone}`
+      `${t('propertyDetail.visit.property')}: "${property.title}"\n` +
+      `${t('propertyDetail.visit.date')}: ${visitDate} - ${visitTime}\n` +
+      `${t('propertyDetail.visit.name')}: ${visitName}\n` +
+      `${t('propertyDetail.visit.phone')}: ${visitPhone}`
     );
     window.open(`https://wa.me/?text=${msg}`, '_blank');
     setIsVisitModalOpen(false);
-    toast({ type: 'success', message: 'Redirecionando para WhatsApp para confirmar a visita!' });
+    toast({ type: 'success', message: t('propertyDetail.visit.successMessage') });
   };
 
   const handleWhatsApp = () => {
@@ -115,32 +117,27 @@ const PropertyDetail = () => {
         // Toast de sucesso ao remover
         toast({
           type: 'success',
-          message: 'Imóvel removido dos favoritos',
+          message: t('propertyDetail.toast.favoriteRemoved'),
         });
       } else {
         const result = await addFavorite(id);
         setIsFavorited(true);
         setFavoriteId(result.id);
-        // Toast de sucesso ao adicionar
         toast({
           type: 'success',
-          message: 'Imóvel adicionado aos favoritos',
+          message: t('propertyDetail.toast.favoriteAdded'),
         });
       }
     } catch (err) {
-      // Erro 409 = já favoritado, considerar como sucesso
+      console.error('[Favorito] Erro:', err?.status, err?.message, err);
       if (err.status === 409) {
         setIsFavorited(true);
-        toast({
-          type: 'info',
-          message: 'Imóvel já está nos favoritos',
-        });
+        toast({ type: 'info', message: t('propertyDetail.toast.alreadyFavorited') });
+      } else if (err.status === 401 || err.status === 403) {
+        toast({ type: 'error', message: t('propertyDetail.toast.loginRequired') });
+        setTimeout(() => navigate('/login'), 1500);
       } else {
-        // Toast de erro genérico
-        toast({
-          type: 'error',
-          message: 'Erro ao atualizar favoritos. Tente novamente.',
-        });
+        toast({ type: 'error', message: t('propertyDetail.toast.favoriteError') });
       }
     } finally {
       setIsLoadingFavorite(false);
@@ -156,13 +153,13 @@ const PropertyDetail = () => {
       } else {
         await navigator.clipboard.writeText(window.location.href);
       }
-      toast({ type: 'success', message: 'Link copiado! Compartilhe com seus clientes.' });
+      toast({ type: 'success', message: t('propertyDetail.toast.linkCopied') });
     } catch (err) {
       try {
         await navigator.clipboard.writeText(window.location.href);
-        toast({ type: 'success', message: 'Link copiado!' });
+        toast({ type: 'success', message: t('propertyDetail.toast.linkCopiedShort') });
       } catch {
-        toast({ type: 'error', message: 'Não foi possível copiar o link.' });
+        toast({ type: 'error', message: t('propertyDetail.toast.linkError') });
       }
     } finally {
       setIsSharing(false);
@@ -175,7 +172,7 @@ const PropertyDetail = () => {
     return imgs.map((img, idx) => ({
       id: img.id ?? String(idx),
       url: img.image_url,
-      alt: property?.title ? `Imagem do imóvel - ${property.title}` : "Imagem do imóvel",
+      alt: property?.title ? t('propertyDetail.imageAlt', { title: property.title }) : t('propertyDetail.imageAltDefault'),
       thumbnail: img.image_url,
     }));
   }, [property]);
@@ -199,7 +196,7 @@ const PropertyDetail = () => {
     return (
       <div className={styles.loading}>
         <div className={styles.loadingSpinner}>⏳</div>
-        <p>Carregando detalhes do imóvel...</p>
+        <p>{t('propertyDetail.loading')}</p>
       </div>
     );
   }
@@ -207,10 +204,10 @@ const PropertyDetail = () => {
   if (error === "NOT_FOUND") {
     return (
       <div className={styles.error}>
-        <h2>Imóvel não encontrado</h2>
-        <p>O imóvel que você procura não foi encontrado.</p>
+        <h2>{t('propertyDetail.notFound.title')}</h2>
+        <p>{t('propertyDetail.notFound.description')}</p>
         <Button onClick={() => navigate('/properties')}>
-          Voltar para a lista
+          {t('propertyDetail.notFound.back')}
         </Button>
       </div>
     );
@@ -219,10 +216,10 @@ const PropertyDetail = () => {
   if (error) {
     return (
       <div className={styles.error}>
-        <h2>Erro ao carregar imóvel</h2>
-        <p>Não foi possível carregar os detalhes agora. Tente novamente.</p>
+        <h2>{t('propertyDetail.error.title')}</h2>
+        <p>{t('propertyDetail.error.description')}</p>
         <Button onClick={() => navigate('/properties')}>
-          Voltar para a lista
+          {t('propertyDetail.error.back')}
         </Button>
       </div>
     );
@@ -231,10 +228,10 @@ const PropertyDetail = () => {
   if (!property) {
     return (
       <div className={styles.error}>
-        <h2>Imóvel não encontrado</h2>
-        <p>O imóvel que você procura não foi encontrado.</p>
+        <h2>{t('propertyDetail.notFound.title')}</h2>
+        <p>{t('propertyDetail.notFound.description')}</p>
         <Button onClick={() => navigate('/properties')}>
-          Voltar para a lista
+          {t('propertyDetail.notFound.back')}
         </Button>
       </div>
     );
@@ -280,91 +277,76 @@ const PropertyDetail = () => {
           {/* Header com informações principais e CTA */}
           <div className={styles.cardHeader}>
             <div className={styles.propertyInfo}>
-              <h2 className={styles.sectionTitle}>Informações do Imóvel</h2>
+              <h2 className={styles.sectionTitle}>{t('propertyDetail.sectionTitle')}</h2>
 
-              {/* Grid de informações principais */}
               <div className={styles.infoGrid}>
                 <div className={styles.infoItem}>
-                  <span className={styles.infoLabel}>Área Total</span>
+                  <span className={styles.infoLabel}>{t('propertyDetail.info.totalArea')}</span>
                   <span className={styles.infoValue}>{property.area}m²</span>
                 </div>
 
-                {/* backend não tem usableArea ainda */}
                 <div className={styles.infoItem}>
-                  <span className={styles.infoLabel}>Área Útil</span>
+                  <span className={styles.infoLabel}>{t('propertyDetail.info.usableArea')}</span>
                   <span className={styles.infoValue}>
                     {usableArea ? `${usableArea}m²` : '-'}
                   </span>
                 </div>
 
                 <div className={styles.infoItem}>
-                  <span className={styles.infoLabel}>Quartos</span>
+                  <span className={styles.infoLabel}>{t('propertyDetail.info.bedrooms')}</span>
                   <span className={styles.infoValue}>{property.bedrooms}</span>
                 </div>
 
-                {/* backend não tem suites ainda */}
                 <div className={styles.infoItem}>
-                  <span className={styles.infoLabel}>Suítes</span>
+                  <span className={styles.infoLabel}>{t('propertyDetail.info.suites')}</span>
                   <span className={styles.infoValue}>{suites}</span>
                 </div>
 
                 <div className={styles.infoItem}>
-                  <span className={styles.infoLabel}>Banheiros</span>
+                  <span className={styles.infoLabel}>{t('propertyDetail.info.bathrooms')}</span>
                   <span className={styles.infoValue}>{property.bathrooms}</span>
                 </div>
 
                 <div className={styles.infoItem}>
-                  <span className={styles.infoLabel}>Vagas</span>
+                  <span className={styles.infoLabel}>{t('propertyDetail.info.parkingSpaces')}</span>
                   <span className={styles.infoValue}>{parkingSpaces}</span>
                 </div>
               </div>
 
-              {/* Características MVP que o backend manda */}
               <div className={styles.infoGrid} style={{ marginTop: 12 }}>
                 <div className={styles.infoItem}>
-                  <span className={styles.infoLabel}>Piscina</span>
-                  <span className={styles.infoValue}>{property.has_pool ? "Sim" : "Não"}</span>
+                  <span className={styles.infoLabel}>{t('propertyDetail.info.pool')}</span>
+                  <span className={styles.infoValue}>{property.has_pool ? t('propertyDetail.info.yes') : t('propertyDetail.info.no')}</span>
                 </div>
                 <div className={styles.infoItem}>
-                  <span className={styles.infoLabel}>Jardim</span>
-                  <span className={styles.infoValue}>{property.has_garden ? "Sim" : "Não"}</span>
+                  <span className={styles.infoLabel}>{t('propertyDetail.info.garden')}</span>
+                  <span className={styles.infoValue}>{property.has_garden ? t('propertyDetail.info.yes') : t('propertyDetail.info.no')}</span>
                 </div>
                 <div className={styles.infoItem}>
-                  <span className={styles.infoLabel}>Mobiliado</span>
-                  <span className={styles.infoValue}>{property.furnished ? "Sim" : "Não"}</span>
+                  <span className={styles.infoLabel}>{t('propertyDetail.info.furnished')}</span>
+                  <span className={styles.infoValue}>{property.furnished ? t('propertyDetail.info.yes') : t('propertyDetail.info.no')}</span>
                 </div>
               </div>
             </div>
 
             {/* Sidebar de contato integrada */}
             <div className={styles.contactSidebar}>
-              <h3 className={styles.contactTitle}>Interessado neste imóvel?</h3>
+              <h3 className={styles.contactTitle}>{t('propertyDetail.contact.title')}</h3>
               <p className={styles.contactDescription}>
-                Fale com um de nossos corretores para mais informações.
+                {t('propertyDetail.contact.description')}
               </p>
 
               <div className={styles.contactButtons}>
-                <Button
-                  className={styles.primaryButton}
-                  onClick={handleContactRealtor}
-                >
-                  Falar com Corretor
+                <Button className={styles.primaryButton} onClick={handleContactRealtor}>
+                  {t('propertyDetail.contact.talkToAgent')}
                 </Button>
 
-                <Button
-                  variant="outline"
-                  className={styles.secondaryButton}
-                  onClick={handleScheduleVisit}
-                >
-                  Agendar Visita
+                <Button variant="outline" className={styles.secondaryButton} onClick={handleScheduleVisit}>
+                  {t('propertyDetail.contact.scheduleVisit')}
                 </Button>
 
-                <Button
-                  variant="outline"
-                  className={styles.whatsappButton}
-                  onClick={handleWhatsApp}
-                >
-                  📱 WhatsApp
+                <Button variant="outline" className={styles.whatsappButton} onClick={handleWhatsApp}>
+                  📱 {t('propertyDetail.contact.whatsapp')}
                 </Button>
 
                 <Button
@@ -372,9 +354,9 @@ const PropertyDetail = () => {
                   className={styles.favoriteButton}
                   onClick={handleToggleFavorite}
                   disabled={isLoadingFavorite}
-                  title={isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+                  title={isFavorited ? t('propertyDetail.contact.removeFavoriteTitle') : t('propertyDetail.contact.addFavoriteTitle')}
                 >
-                  {isFavorited ? '❤️' : '🤍'} {isFavorited ? 'Favoritado' : 'Favoritar'}
+                  {isFavorited ? '❤️' : '🤍'} {isFavorited ? t('propertyDetail.contact.favorited') : t('propertyDetail.contact.favorite')}
                 </Button>
 
                 <Button
@@ -382,9 +364,9 @@ const PropertyDetail = () => {
                   className={styles.shareButton}
                   onClick={handleShareFavorite}
                   disabled={isSharing}
-                  title="Copiar link do imóvel"
+                  title={t('propertyDetail.contact.shareTitle')}
                 >
-                  {isSharing ? '🔄 Copiando...' : '🔗 Compartilhar'}
+                  {isSharing ? `🔄 ${t('propertyDetail.contact.sharing')}` : `🔗 ${t('propertyDetail.contact.share')}`}
                 </Button>
               </div>
 
@@ -404,7 +386,7 @@ const PropertyDetail = () => {
 
           {/* Descrição */}
           <div className={styles.descriptionSection}>
-            <h3 className={styles.subsectionTitle}>Descrição</h3>
+            <h3 className={styles.subsectionTitle}>{t('propertyDetail.description')}</h3>
             <div className={styles.description}>
               {String(property.description || '')
                 .split('\n')
@@ -422,7 +404,7 @@ const PropertyDetail = () => {
           {/* Características e informações adicionais combinadas */}
           <div className={styles.combinedInfo}>
             <div className={styles.featuresSection}>
-              <h3 className={styles.subsectionTitle}>Características</h3>
+              <h3 className={styles.subsectionTitle}>{t('propertyDetail.features')}</h3>
               <div className={styles.featuresGrid}>
                 {safeFeatures.length === 0 ? (
                   <div className={styles.feature}>
@@ -440,35 +422,35 @@ const PropertyDetail = () => {
             </div>
 
             <div className={styles.additionalSection}>
-              <h3 className={styles.subsectionTitle}>Informações Adicionais</h3>
+              <h3 className={styles.subsectionTitle}>{t('propertyDetail.additionalInfo.title')}</h3>
               <div className={styles.additionalInfoGrid}>
                 {safeAdditionalInfo ? (
                   <>
                     <div className={styles.additionalInfoItem}>
-                      <span className={styles.additionalInfoLabel}>Ano de Construção</span>
+                      <span className={styles.additionalInfoLabel}>{t('propertyDetail.additionalInfo.yearBuilt')}</span>
                       <span className={styles.additionalInfoValue}>{safeAdditionalInfo.yearBuilt}</span>
                     </div>
                     <div className={styles.additionalInfoItem}>
-                      <span className={styles.additionalInfoLabel}>Andar</span>
-                      <span className={styles.additionalInfoValue}>{safeAdditionalInfo.floor || 'Térreo'}</span>
+                      <span className={styles.additionalInfoLabel}>{t('propertyDetail.additionalInfo.floor')}</span>
+                      <span className={styles.additionalInfoValue}>{safeAdditionalInfo.floor || t('propertyDetail.additionalInfo.ground')}</span>
                     </div>
                     <div className={styles.additionalInfoItem}>
-                      <span className={styles.additionalInfoLabel}>Condomínio</span>
+                      <span className={styles.additionalInfoLabel}>{t('propertyDetail.additionalInfo.condo')}</span>
                       <span className={styles.additionalInfoValue}>
-                        {formatPriceBRL(safeAdditionalInfo.condominiumFee)}/mês
+                        {formatPriceBRL(safeAdditionalInfo.condominiumFee)}{t('propertyDetail.additionalInfo.perMonth')}
                       </span>
                     </div>
                     <div className={styles.additionalInfoItem}>
-                      <span className={styles.additionalInfoLabel}>IPTU</span>
+                      <span className={styles.additionalInfoLabel}>{t('propertyDetail.additionalInfo.iptu')}</span>
                       <span className={styles.additionalInfoValue}>
-                        {formatPriceBRL(safeAdditionalInfo.iptu)}/ano
+                        {formatPriceBRL(safeAdditionalInfo.iptu)}{t('propertyDetail.additionalInfo.perYear')}
                       </span>
                     </div>
                   </>
                 ) : (
                   <div className={styles.additionalInfoItem}>
                     <span className={styles.additionalInfoLabel}>—</span>
-                    <span className={styles.additionalInfoValue}>Sem informações adicionais.</span>
+                    <span className={styles.additionalInfoValue}>{t('propertyDetail.additionalInfo.none')}</span>
                   </div>
                 )}
               </div>
@@ -480,11 +462,11 @@ const PropertyDetail = () => {
 
           {/* Locais próximos */}
           <div className={styles.nearbySection}>
-            <h3 className={styles.subsectionTitle}>Locais Próximos</h3>
+            <h3 className={styles.subsectionTitle}>{t('propertyDetail.nearbyPlaces.title')}</h3>
             <div className={styles.nearbyList}>
               {safeNearbyPlaces.length === 0 ? (
                 <div className={styles.nearbyItem}>
-                  <span className={styles.nearbyName}>Sem dados de locais próximos.</span>
+                  <span className={styles.nearbyName}>{t('propertyDetail.nearbyPlaces.none')}</span>
                 </div>
               ) : (
                 safeNearbyPlaces.map((place, index) => (
@@ -499,95 +481,71 @@ const PropertyDetail = () => {
         </Card>
       </div>
 
-      {/* Modal de Chat */}
       <Modal
         open={isChatModalOpen}
-        title="Falar com Corretor"
+        title={t('propertyDetail.chat.title')}
         onClose={() => setIsChatModalOpen(false)}
         actions={
           <>
             <Button variant="outline" onClick={() => setIsChatModalOpen(false)}>
-              Cancelar
+              {t('propertyDetail.chat.cancel')}
             </Button>
-            <Button
-              onClick={() => {
-                setIsChatModalOpen(false);
-                navigate('/messages');
-              }}
-            >
-              Ir para o Chat
+            <Button onClick={() => { setIsChatModalOpen(false); navigate('/mensagens'); }}>
+              {t('propertyDetail.chat.goToChat')}
             </Button>
           </>
         }
       >
         <div className={styles.chatModalContent}>
-          <p>Você está iniciando uma conversa sobre o imóvel:</p>
+          <p>{t('propertyDetail.chat.about')}</p>
           <div className={styles.chatPropertyInfo}>
             <strong>{property.title}</strong>
             <div>{formatPriceBRL(property.price)}</div>
             {locationText ? <div>{locationText}</div> : null}
           </div>
-          <p>Clique em "Ir para o Chat" para falar diretamente com um corretor.</p>
         </div>
       </Modal>
 
-      {/* Modal de Agendamento */}
       <Modal
         open={isVisitModalOpen}
-        title="Agendar Visita"
+        title={t('propertyDetail.visit.title')}
         onClose={() => setIsVisitModalOpen(false)}
         actions={
           <>
             <Button variant="outline" onClick={() => setIsVisitModalOpen(false)}>
-              Cancelar
+              {t('propertyDetail.visit.cancel')}
             </Button>
             <Button onClick={handleConfirmVisit}>
-              Confirmar pelo WhatsApp
+              {t('propertyDetail.visit.confirm')}
             </Button>
           </>
         }
       >
         <div className={styles.chatModalContent}>
-          <p>Imóvel: <strong>{property.title}</strong></p>
+          <p>{t('propertyDetail.visit.property')}: <strong>{property.title}</strong></p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
             <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14 }}>
-              Seu nome *
-              <input
-                type="text"
-                value={visitName}
-                onChange={e => setVisitName(e.target.value)}
-                placeholder="Digite seu nome"
-                style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 14 }}
-              />
+              {t('propertyDetail.visit.name')}
+              <input type="text" value={visitName} onChange={e => setVisitName(e.target.value)}
+                placeholder={t('propertyDetail.visit.namePlaceholder')}
+                style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 14 }} />
             </label>
             <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14 }}>
-              Seu telefone *
-              <input
-                type="tel"
-                value={visitPhone}
-                onChange={e => setVisitPhone(e.target.value)}
-                placeholder="(11) 99999-9999"
-                style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 14 }}
-              />
+              {t('propertyDetail.visit.phone')}
+              <input type="tel" value={visitPhone} onChange={e => setVisitPhone(e.target.value)}
+                placeholder={t('propertyDetail.visit.phonePlaceholder')}
+                style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 14 }} />
             </label>
             <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14 }}>
-              Data preferida *
-              <input
-                type="date"
-                value={visitDate}
-                onChange={e => setVisitDate(e.target.value)}
+              {t('propertyDetail.visit.date')}
+              <input type="date" value={visitDate} onChange={e => setVisitDate(e.target.value)}
                 min={new Date().toISOString().split('T')[0]}
-                style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 14 }}
-              />
+                style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 14 }} />
             </label>
             <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14 }}>
-              Horário preferido
-              <input
-                type="time"
-                value={visitTime}
-                onChange={e => setVisitTime(e.target.value)}
-                style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 14 }}
-              />
+              {t('propertyDetail.visit.time')}
+              <input type="time" value={visitTime} onChange={e => setVisitTime(e.target.value)}
+                style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 14 }} />
             </label>
           </div>
         </div>

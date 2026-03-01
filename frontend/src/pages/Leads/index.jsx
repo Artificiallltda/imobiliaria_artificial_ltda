@@ -30,7 +30,6 @@ export default function Leads() {
   const [error, setError] = useState(null)
   const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 10 })
 
-  // Estados para filtros
   const [statusFilter, setStatusFilter] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
@@ -48,7 +47,6 @@ export default function Leads() {
       })
     } catch (err) {
       setError(err.message)
-      console.error('Erro ao carregar leads:', err)
     } finally {
       setLoading(false)
     }
@@ -66,21 +64,20 @@ export default function Leads() {
   const statusLabel = (status) => {
     switch (status) {
       case 'pending':
-        return 'Novo'
+        return t('leads.statusOptions.new')
       case 'inService':
-        return 'Em Atendimento'
+        return t('leads.statusOptions.inService')
       case 'warning':
-        return 'Proposta Enviada'
+        return t('leads.statusOptions.proposalSent')
       case 'success':
-        return 'Fechado'
+        return t('leads.statusOptions.closed')
       case 'lost':
-        return 'Perdido'
+        return t('leads.statusOptions.lost')
       default:
         return status
     }
   }
 
-  // Mantém as cores do StatusTag que você já tem (active/warning/etc)
   const statusVariant = (status) => {
     switch (status) {
       case 'pending':
@@ -98,19 +95,17 @@ export default function Leads() {
     }
   }
 
-  // Opções para filtro de status - ATUALIZADO MVP
   const statusOptions = useMemo(() => [
-    { value: '', label: 'Todos os status' },
-    { value: 'novo', label: 'Novo' },
-    { value: 'em_atendimento', label: 'Em Atendimento' },
-    { value: 'proposta_enviada', label: 'Proposta Enviada' },
-    { value: 'fechado', label: 'Fechado' },
-    { value: 'perdido', label: 'Perdido' }
-  ], [])
+    { value: '', label: t('leads.statusOptions.all') },
+    { value: 'novo', label: t('leads.statusOptions.new') },
+    { value: 'em_atendimento', label: t('leads.statusOptions.inService') },
+    { value: 'proposta_enviada', label: t('leads.statusOptions.proposalSent') },
+    { value: 'fechado', label: t('leads.statusOptions.closed') },
+    { value: 'perdido', label: t('leads.statusOptions.lost') }
+  ], [t])
 
-  // Função para aplicar filtros
   const applyFilters = () => {
-    setCurrentPage(1) // Reset para primeira página
+    setCurrentPage(1)
     fetchLeads({
       status: statusFilter || undefined,
       search: searchTerm || undefined,
@@ -119,7 +114,6 @@ export default function Leads() {
     })
   }
 
-  // Função para limpar filtros
   const clearFilters = () => {
     setStatusFilter('')
     setSearchTerm('')
@@ -127,7 +121,6 @@ export default function Leads() {
     fetchLeads({ page: 1, limit: 10 })
   }
 
-  // Função para mudar página
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage)
   }
@@ -136,7 +129,7 @@ export default function Leads() {
     return (
       <div className="page">
         <h2>{t('leads.title')}</h2>
-        <p>Carregando leads...</p>
+        <p>{t('leads.loading')}</p>
       </div>
     )
   }
@@ -145,9 +138,9 @@ export default function Leads() {
     return (
       <div className="page">
         <h2>{t('leads.title')}</h2>
-        <p>Erro ao carregar leads: {error}</p>
+        <p>{t('leads.error', { message: error })}</p>
         <Button onClick={() => fetchLeads({ page: currentPage, limit: 10 })}>
-          Tentar novamente
+          {t('favorites.retry')}
         </Button>
       </div>
     )
@@ -158,13 +151,12 @@ export default function Leads() {
       <h2>{t('leads.title')}</h2>
       <p className="muted">{t('leads.subtitle')}</p>
 
-      {/* Filtros */}
       <div style={{ marginTop: 20, marginBottom: 20, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <label style={{ fontSize: 14, fontWeight: 600 }}>Buscar</label>
+          <label style={{ fontSize: 14, fontWeight: 600 }}>{t('leads.filters.searchLabel')}</label>
           <input
             type="text"
-            placeholder="Nome, email ou telefone..."
+            placeholder={t('leads.filters.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{
@@ -177,7 +169,7 @@ export default function Leads() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <label style={{ fontSize: 14, fontWeight: 600 }}>Status</label>
+          <label style={{ fontSize: 14, fontWeight: 600 }}>{t('leads.filters.statusLabel')}</label>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -198,24 +190,22 @@ export default function Leads() {
 
         <div style={{ display: 'flex', alignItems: 'end', gap: 8 }}>
           <Button onClick={applyFilters} variant="primary">
-            Aplicar filtros
+            {t('leads.filters.apply')}
           </Button>
           <Button onClick={clearFilters} variant="outline">
-            Limpar
+            {t('leads.filters.clear')}
           </Button>
         </div>
       </div>
 
-      {/* Contador de resultados */}
       <div style={{ marginBottom: 12, fontSize: 14, color: '#666' }}>
         {pagination.total > 0 ? (
-          <>Encontrados {pagination.total} lead{pagination.total !== 1 ? 's' : ''}</>
+          t('leads.foundCount', { count: pagination.total })
         ) : (
-          'Nenhum lead encontrado'
+          t('leads.table.empty')
         )}
       </div>
 
-      {/* Lista de leads */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }}>
         {leads.map((lead) => {
           const displayStatus = mapStatusToDisplay(lead.status)
@@ -247,7 +237,6 @@ export default function Leads() {
         })}
       </div>
 
-      {/* Paginação */}
       {pagination.total > pagination.limit && (
         <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center', gap: 8 }}>
           <Button
@@ -255,11 +244,11 @@ export default function Leads() {
             disabled={currentPage <= 1}
             onClick={() => handlePageChange(currentPage - 1)}
           >
-            Anterior
+            {t('leads.pagination.prev')}
           </Button>
 
           <span style={{ padding: '8px 16px', alignSelf: 'center' }}>
-            Página {currentPage} de {Math.ceil(pagination.total / pagination.limit)}
+            {t('leads.pagination.page', { current: currentPage, total: Math.ceil(pagination.total / pagination.limit) })}
           </span>
 
           <Button
@@ -267,14 +256,14 @@ export default function Leads() {
             disabled={currentPage >= Math.ceil(pagination.total / pagination.limit)}
             onClick={() => handlePageChange(currentPage + 1)}
           >
-            Próxima
+            {t('leads.pagination.next')}
           </Button>
         </div>
       )}
 
       {leads.length === 0 && !loading && (
         <p className="muted" style={{ textAlign: 'center', marginTop: 40 }}>
-          Nenhum lead encontrado com os filtros aplicados.
+          {t('leads.table.empty')}
         </p>
       )}
     </div>
