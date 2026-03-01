@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Button, StatusTag, Modal, useToast } from '../../components/ui/index.js';
-import PropertyGallery from '../../components/PropertyGallery/index.jsx';
-import PropertyMap from '../../components/PropertyMap/index.jsx';
-import WhatsAppShare from '../../components/WhatsAppShare/index.jsx';
+import Gallery from '../../components/Properties/Gallery/index.jsx';
 import styles from './styles.module.css';
 
 import { getPropertyById } from '../../services/propertiesService';
@@ -19,6 +17,11 @@ const PropertyDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null); // "NOT_FOUND" | "GENERIC" | null
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
+  const [isVisitModalOpen, setIsVisitModalOpen] = useState(false);
+  const [visitDate, setVisitDate] = useState('');
+  const [visitTime, setVisitTime] = useState('10:00');
+  const [visitName, setVisitName] = useState('');
+  const [visitPhone, setVisitPhone] = useState('');
   const [isFavorited, setIsFavorited] = useState(false);
   const [isLoadingFavorite, setIsLoadingFavorite] = useState(false);
   const [favoriteId, setFavoriteId] = useState(null);
@@ -34,7 +37,6 @@ const PropertyDetail = () => {
       try {
         const data = await getPropertyById(id);
         if (!alive) return;
-        
         setProperty(data);
 
         // Verificar se está nos favoritos
@@ -72,15 +74,32 @@ const PropertyDetail = () => {
   };
 
   const handleScheduleVisit = () => {
-    // TODO - Implementar agendamento de visita
+    setIsVisitModalOpen(true);
+  };
+
+  const handleConfirmVisit = () => {
+    if (!visitDate || !visitName || !visitPhone) {
+      toast({ type: 'error', message: 'Preencha todos os campos para agendar.' });
+      return;
+    }
+    const msg = encodeURIComponent(
+      `Olá! Gostaria de agendar uma visita ao imóvel "${property.title}".\n` +
+      `Data: ${visitDate} às ${visitTime}\n` +
+      `Nome: ${visitName}\n` +
+      `Telefone: ${visitPhone}`
+    );
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+    setIsVisitModalOpen(false);
+    toast({ type: 'success', message: 'Redirecionando para WhatsApp para confirmar a visita!' });
   };
 
   const handleWhatsApp = () => {
-    // Backend ainda não retorna contact; então evita quebrar
     const whatsapp = property?.contact?.whatsapp;
+    const message = encodeURIComponent(`Olá! Tenho interesse no imóvel: ${property.title} — ${window.location.href}`);
     if (whatsapp) {
-      const message = encodeURIComponent(`Olá! Tenho interesse no imóvel: ${property.title}`);
       window.open(`https://wa.me/${String(whatsapp).replace(/\D/g, '')}?text=${message}`, '_blank');
+    } else {
+      window.open(`https://wa.me/?text=${message}`, '_blank');
     }
   };
 
@@ -129,28 +148,37 @@ const PropertyDetail = () => {
   };
 
   const handleShareFavorite = async () => {
-    if (!favoriteId || isSharing) return;
-
     setIsSharing(true);
     try {
-      const result = await generatePublicLink(favoriteId);
-      
-      // Copiar link para clipboard
-      await navigator.clipboard.writeText(result.public_url);
-      
-      toast({
-        type: 'success',
-        message: 'Link copiado com sucesso! Compartilhe com seus clientes.',
-      });
+      if (favoriteId) {
+        const result = await generatePublicLink(favoriteId);
+        await navigator.clipboard.writeText(result.public_url);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+      }
+      toast({ type: 'success', message: 'Link copiado! Compartilhe com seus clientes.' });
     } catch (err) {
-      toast({
-        type: 'error',
-        message: 'Erro ao gerar link de compartilhamento. Tente novamente.',
-      });
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        toast({ type: 'success', message: 'Link copiado!' });
+      } catch {
+        toast({ type: 'error', message: 'Não foi possível copiar o link.' });
+      }
     } finally {
       setIsSharing(false);
     }
   };
+
+  // Adapta imagens do backend para o formato do Gallery (provável { url, alt, thumbnail })
+  const galleryImages = useMemo(() => {
+    const imgs = Array.isArray(property?.images) ? property.images : [];
+    return imgs.map((img, idx) => ({
+      id: img.id ?? String(idx),
+      url: img.image_url,
+      alt: property?.title ? `Imagem do imóvel - ${property.title}` : "Imagem do imóvel",
+      thumbnail: img.image_url,
+    }));
+  }, [property]);
 
   // Fallbacks para campos que o backend ainda não retorna
   const safeFeatures = Array.isArray(property?.features) ? property.features : [];
@@ -242,9 +270,9 @@ const PropertyDetail = () => {
       </div>
 
       <div className={styles.content}>
-        {/* Galeria de imagens com Swiper */}
+        {/* Galeria de imagens */}
         <div className={styles.gallerySection}>
-          <PropertyGallery images={property.images} />
+          <Gallery images={galleryImages} />
         </div>
 
         {/* Card único com todas as informações */}
@@ -335,8 +363,6 @@ const PropertyDetail = () => {
                   variant="outline"
                   className={styles.whatsappButton}
                   onClick={handleWhatsApp}
-                  disabled={!property?.contact?.whatsapp}
-                  title={!property?.contact?.whatsapp ? "WhatsApp ainda não disponível via API" : ""}
                 >
                   📱 WhatsApp
                 </Button>
@@ -355,10 +381,10 @@ const PropertyDetail = () => {
                   variant="outline"
                   className={styles.shareButton}
                   onClick={handleShareFavorite}
-                  disabled={!isFavorited || isSharing}
-                  title="Compartilhar imóvel favorito"
+                  disabled={isSharing}
+                  title="Copiar link do imóvel"
                 >
-                  {isSharing ? '🔄 Gerando...' : '🔗 Compartilhar'}
+                  {isSharing ? '🔄 Copiando...' : '🔗 Compartilhar'}
                 </Button>
               </div>
 
@@ -389,22 +415,6 @@ const PropertyDetail = () => {
                 ))}
             </div>
           </div>
-
-          {/* Divider */}
-          <div className={styles.divider}></div>
-
-          {/* Mapa do Imóvel */}
-          <PropertyMap 
-            latitude={property.latitude} 
-            longitude={property.longitude} 
-            title={property.title}
-          />
-
-          {/* Divider */}
-          <div className={styles.divider}></div>
-
-          {/* Compartilhamento WhatsApp */}
-          <WhatsAppShare property={property} />
 
           {/* Divider */}
           <div className={styles.divider}></div>
@@ -492,7 +502,7 @@ const PropertyDetail = () => {
       {/* Modal de Chat */}
       <Modal
         open={isChatModalOpen}
-        title="Iniciar Conversa"
+        title="Falar com Corretor"
         onClose={() => setIsChatModalOpen(false)}
         actions={
           <>
@@ -501,28 +511,85 @@ const PropertyDetail = () => {
             </Button>
             <Button
               onClick={() => {
-                // TODO - Integrar CTA com sistema de chat
                 setIsChatModalOpen(false);
+                navigate('/messages');
               }}
             >
-              Iniciar Conversa
+              Ir para o Chat
             </Button>
           </>
         }
       >
         <div className={styles.chatModalContent}>
-          <p>
-            Você está iniciando uma conversa sobre o imóvel:
-          </p>
+          <p>Você está iniciando uma conversa sobre o imóvel:</p>
           <div className={styles.chatPropertyInfo}>
             <strong>{property.title}</strong>
             <div>{formatPriceBRL(property.price)}</div>
             {locationText ? <div>{locationText}</div> : null}
           </div>
-          <p>
-            Um de nossos corretores entrará em contato em breve para fornecer
-            mais informações sobre este imóvel.
-          </p>
+          <p>Clique em "Ir para o Chat" para falar diretamente com um corretor.</p>
+        </div>
+      </Modal>
+
+      {/* Modal de Agendamento */}
+      <Modal
+        open={isVisitModalOpen}
+        title="Agendar Visita"
+        onClose={() => setIsVisitModalOpen(false)}
+        actions={
+          <>
+            <Button variant="outline" onClick={() => setIsVisitModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleConfirmVisit}>
+              Confirmar pelo WhatsApp
+            </Button>
+          </>
+        }
+      >
+        <div className={styles.chatModalContent}>
+          <p>Imóvel: <strong>{property.title}</strong></p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14 }}>
+              Seu nome *
+              <input
+                type="text"
+                value={visitName}
+                onChange={e => setVisitName(e.target.value)}
+                placeholder="Digite seu nome"
+                style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 14 }}
+              />
+            </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14 }}>
+              Seu telefone *
+              <input
+                type="tel"
+                value={visitPhone}
+                onChange={e => setVisitPhone(e.target.value)}
+                placeholder="(11) 99999-9999"
+                style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 14 }}
+              />
+            </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14 }}>
+              Data preferida *
+              <input
+                type="date"
+                value={visitDate}
+                onChange={e => setVisitDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 14 }}
+              />
+            </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14 }}>
+              Horário preferido
+              <input
+                type="time"
+                value={visitTime}
+                onChange={e => setVisitTime(e.target.value)}
+                style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 14 }}
+              />
+            </label>
+          </div>
         </div>
       </Modal>
     </div>
